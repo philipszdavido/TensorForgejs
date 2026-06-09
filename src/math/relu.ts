@@ -15,3 +15,13 @@ export function ReLU(vec: Vector) {
     return v;
 
 }
+
+export function ReLU_derivative(v: Vector): Vector {
+    const result = new Vector(v.length);
+
+    for (let i = 0; i < v.length; i++) {
+        result.set(i, v.get(i) > 0 ? 1 : 0);
+    }
+
+    return result;
+}
