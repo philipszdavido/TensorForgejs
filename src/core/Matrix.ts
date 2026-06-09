@@ -132,6 +132,18 @@ export class Matrix {
 
         return data;
     }
+    
+    static outerProduct(a: Vector, b: Vector): Matrix {
+        const result = Matrix.zeros(a.length, b.length);
+
+        for (let i = 0; i < a.length; i++) {
+            for (let j = 0; j < b.length; j++) {
+                result.set(i, j, a.get(i) * b.get(j));
+            }
+        }
+
+        return result;
+    }
 
     print(label?: string) {
         if (label) console.log(`\n${label}`);
