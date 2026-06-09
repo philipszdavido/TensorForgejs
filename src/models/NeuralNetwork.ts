@@ -5,8 +5,13 @@ import {ReLU} from "../math/relu";
 import softmax from "../math/softmax";
 
 type Layer = {
-    weight: Matrix,
-    bias: Matrix,
+    weight: Matrix, // W (out × in)
+    bias: Vector, // b (out)
+    dW: Matrix,
+    dB: Vector;
+    input?: Vector;
+    z?: Vector; // pre-activation
+    a?: Vector; // activation
 };
 
 export default class NeuralNetwork {
