@@ -121,4 +121,20 @@ export class Vector {
             console.log(`[ ${formatted} ]`);
         }
     }
+
+    static random(size: number) {
+        const vec = new Vector(size);
+        for (let i = 0; i < size; i++) {
+            vec.set(i, Math.random());
+        }
+        return vec;
+    }
+
+    static zeros(size: number) {
+        const vec = new Vector(size);
+        for (let i = 0; i < size; i++) {
+            vec.set(i, 0);
+        }
+        return vec;
+    }
 }
