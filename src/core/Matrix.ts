@@ -100,13 +100,10 @@ export class Matrix {
         return data;
     }
 
-    static fromVector(arr: Array<Vector>) {
-        const data = new Matrix(arr.length, arr[0].length);
-        for (let index = 0; index < arr.length; index++) {
-            const col = arr[index];
-            for (let j = 0; j < col.length; j++) {
-                data.set(index, j, col.get(j));
-            }
+    static fromVector(vec: Vector) {
+        const data = new Matrix(vec.length, 1);
+        for (let index = 0; index < vec.length; index++) {
+            data.set(0, index, vec.get(index));
         }
 
         return data;
