@@ -28,16 +28,20 @@ export default class NeuralNetwork {
             // outputs x inputs
             // new Matrix(cols, rows)
             const weight = Matrix.random(layer, currentInputs);
-            const bias = Matrix.random(1, layer);
+            const dW = Matrix.zeros(layer, currentInputs);
+            const bias = Vector.random(layer);
+            const dB = Vector.zeros(layer);
 
-            this.layers.push({weight, bias});
+            this.layers.push({weight, bias, dW, dB});
             currentInputs = layer;
         }
 
         const weight = Matrix.random(outputSize, currentInputs);
-        const bias = Matrix.random(currentInputs, 1);
+        const bias = Vector.random(outputSize);
+        const dW = Matrix.zeros(outputSize, currentInputs);
+        const dB = Vector.zeros(outputSize);
 
-        this.layers.push({weight, bias});
+        this.layers.push({weight, bias, dW, dB});
 
     }
 
