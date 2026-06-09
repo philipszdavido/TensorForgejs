@@ -1,8 +1,8 @@
 import assert from "../../assert/assert";
-import { Vector } from "../../core/Vector";
+import {Vector} from "../../core/Vector";
 
 export default function sum(vec: Vector) {
-  return vec.sum();
+    return vec.sum();
 }
 
 // Anytime you perform a mathematical operation between two vectors of equal length where
@@ -45,18 +45,33 @@ export function vector_sum(vec_a: Vector) {
     return sum;
 }
 
+export function vector_subtract(vec_a: Vector, vec_b: Vector) {
+
+    assert(vec_a.length == vec_b.length);
+
+    const vec = new Vector(vec_a.length);
+    for (let index = 0; index < vec_a.length; index++) {
+        const a = vec_a.get(index);
+        const b = vec_b.get(index);
+        const result = a - b;
+        vec.set(index, result);
+    }
+
+    return vec;
+}
+
 export function vector_average(vec_a: Vector) {
     return vector_sum(vec_a) / vec_a.length;
 }
 
 export function ele_mul(n: number, vector: Array<number>) {
-  let output = Array(vector.length);
+    let output = Array(vector.length);
 
-  assert(output.length == vector.length);
+    assert(output.length == vector.length);
 
-  for (const i of vector) {
-    output[i] = n * vector[i];
-  }
+    for (const i of vector) {
+        output[i] = n * vector[i];
+    }
 
-  return output;
+    return output;
 }
