@@ -278,8 +278,11 @@ export default class NeuralNetwork {
         Predicted?.print("Predicted");
 
         // get the output error
+        const lossGrad = this.loss.gradient(Y, Predicted);
 
-        for (let i = this.layers.length - 1; i >= 0; i--) {
+        let delta: Vector;
+
+            layer.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), layer.dB));
             const layer = this.layers[i];
 
             error.print("Error");
@@ -289,13 +292,15 @@ export default class NeuralNetwork {
             layer.z?.print("Z");
             layer.bias?.print("Bias " + i);
 
-            layer.dB = Vector.from(error.toArray());
-            layer.dB.print("dB " + i);
-
+            layer.dW = Matrix.add(layer.dW, Matrix.outerProduct(delta, layer!.input!));
             layer.dW = Matrix.outerProduct(error, layer!.input!);
 
             layer.dW.print("dW " + i);
 
+
+                const prevLayer = this.layers[i - 1];
+
+                const prevLayer = this.layers[i - 1];
             if (i > 0) {
                 const WT = transpose(layer.weight);
 
