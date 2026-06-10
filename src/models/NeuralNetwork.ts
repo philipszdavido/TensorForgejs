@@ -4,9 +4,7 @@ import {elementwise_addition, elementwise_multiplication, vector_subtract} from 
 import {ReLU, ReLU_derivative} from "../math/relu";
 import softmax from "../math/softmax";
 import transpose from "../math/transpose";
-import sigmoid, {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
-import randomNormal from "../math/randomNormal";
-import clip, {normClip} from "../math/clip";
+import {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
 
 // This is currently Dense
 // Will add:
@@ -50,40 +48,6 @@ export const BCE: LossFunction = {
         const eps = 1e-15;
         return -(t / Math.max(p, eps) - (1 - t) / Math.max(1 - p, eps)) / y.length;
     }))
-    // loss(y, pred) {
-    //     let sum = 0;
-    //     const eps = 1e-12;
-    //
-    //     for (let i = 0; i < y.length; i++) {
-    //         const p = pred.get(i);
-    //         const t = y.get(i);
-    //
-    //         sum += -(
-    //             t * Math.log(p + eps) +
-    //             (1 - t) * Math.log(1 - p + eps)
-    //         );
-    //     }
-    //
-    //     return sum;
-    // },
-    //
-    // // _gradient(y, pred) {
-    // //     return vector_subtract(pred, y);
-    // // },
-    // gradient(y, pred) {
-    //     const gradData: number[] = [];
-    //     const eps = 1e-12;
-    //
-    //     for (let i = 0; i < y.length; i++) {
-    //         const p = pred.get(i);
-    //         const t = y.get(i);
-    //
-    //         // const g = (p - t) / (p * (1 - p) + eps);
-    //         const g = -(t / Math.max(p, 1e-15) - (1 - t) / Math.max(1 - p, 1e-15));
-    //         gradData.push(g);
-    //     }
-    //     return Vector.from(gradData);
-    // }
 };
 
 export const SoftmaxCrossEntropy: LossFunction = {
@@ -116,7 +80,7 @@ export const LinearActivation: Activation = {
         return Vector.from(data);
     },
     initializer(inputs) {
-        return Math.sqrt(1 / inputs); // Xavier
+        return Math.sqrt(1 / inputs);
     }
 };
 
@@ -179,12 +143,11 @@ type Layer = {
     a?: Vector; // activation
 
     activation: Activation;
-
-    activation: Activation;
 };
 
 export default class NeuralNetwork {
     layers: Layer[] = [];
+    private isTraining: boolean = true;
 
     constructor(
         public readonly input: Input,
@@ -205,15 +168,14 @@ export default class NeuralNetwork {
         let currentInputs = input.size;
 
         for (let i = 0; i < hidden.length; i++) {
+
             const {size, activation} = hidden[i];
-            // outputs x inputs
-            // new Matrix(cols, rows)
+
             const weight = this.initializeWeights(
                 size,
                 currentInputs,
                 activation
             );
-            // Matrix.random(size, currentInputs);
 
             const dW = Matrix.zeros(size, currentInputs);
             const bias = Vector.zeros(size);
@@ -228,7 +190,7 @@ export default class NeuralNetwork {
             currentInputs,
             output.activation
         );
-        // Matrix.random(output.size, currentInputs);
+
         const bias = Vector.zeros(output.size);
         const dW = Matrix.zeros(output.size, currentInputs);
         const dB = Vector.zeros(output.size);
@@ -261,30 +223,18 @@ export default class NeuralNetwork {
     }
 
     backward(y: number[]) {
-        console.log("==============Backward=================");
 
         const output = this.layers[this.layers.length - 1];
         const Predicted = output.a!;
 
         const Y: Vector = Vector.from(y);
 
-        let error = vector_subtract(Predicted, Y);
-
-        Y.print("Y");
-        Predicted?.print("Predicted");
-
         // get the output error
         const lossGrad = this.loss.gradient(Y, Predicted);
 
-        let delta: Vector;
-
-        // if (this.loss.fused) {
-        //     delta = lossGrad;
-        // } else {
-        delta = Vector.from(
+        let delta: Vector = Vector.from(
             elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
         );
-        //}
 
         for (let i = this.layers.length - 1; i >= 0; i--) {
             const layer = this.layers[i];
@@ -292,26 +242,19 @@ export default class NeuralNetwork {
             layer.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), layer.dB));
 
             layer.dW = Matrix.add(layer.dW, Matrix.outerProduct(delta, layer!.input!));
-            layer.dW = Matrix.outerProduct(error, layer!.input!);
 
             if (i > 0) {
 
                 const prevLayer = this.layers[i - 1];
-            if (i > 0) {
                 const WT = transpose(layer.weight);
 
-                WT.print("Transpose");
-                error.print("Error");
-
-                // error = Vector.vectorMulMatrix(error, layer.weight)
                 delta = Vector.from(
                     elementwise_multiplication(
                         Matrix.matrixMulVector(WT, delta),
-                        prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!) //ReLU_derivative(this.layers[i - 1].z!),
+                        prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
                     ),
                 );
 
-                error.print("Error");
             }
         }
     }
