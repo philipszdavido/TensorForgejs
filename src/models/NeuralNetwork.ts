@@ -193,19 +193,30 @@ export default class NeuralNetwork {
             const layer = hidden[i];
             // outputs x inputs
             // new Matrix(cols, rows)
-            const weight = Matrix.random(layer, currentInputs);
-            const dW = Matrix.zeros(layer, currentInputs);
-            const bias = Vector.random(layer);
-            const dB = Vector.zeros(layer);
+            const weight = this.initializeWeights(
+                size,
+                currentInputs,
+                activation
+            );
+            // Matrix.random(size, currentInputs);
 
-            this.layers.push({weight, bias, dW, dB});
-            currentInputs = layer;
+            const dW = Matrix.zeros(size, currentInputs);
+            const bias = Vector.zeros(size);
+            const dB = Vector.zeros(size);
+
+            this.layers.push({weight, bias, dW, dB, activation});
+            currentInputs = size;
         }
 
-        const weight = Matrix.random(outputSize, currentInputs);
-        const bias = Vector.random(outputSize);
-        const dW = Matrix.zeros(outputSize, currentInputs);
-        const dB = Vector.zeros(outputSize);
+        const weight = this.initializeWeights(
+            output.size,
+            currentInputs,
+            output.activation
+        );
+        // Matrix.random(output.size, currentInputs);
+        const bias = Vector.zeros(output.size);
+        const dW = Matrix.zeros(output.size, currentInputs);
+        const dB = Vector.zeros(output.size);
 
         this.layers.push({weight, bias, dW, dB});
     }
@@ -226,9 +237,9 @@ export default class NeuralNetwork {
             layer.input = a;
 
             if (i === this.layers.length - 1) {
-                layer.a = Vector.from(softmax(zWithBias.toArray()));
+                layer.a = layer.activation.forward(zWithBias) // Vector.from(softmax(zWithBias.toArray()));
             } else {
-                layer.a = ReLU(zWithBias);
+                layer.a = layer.activation.forward(zWithBias) // ReLU(zWithBias);
             }
 
             a = layer.a;
