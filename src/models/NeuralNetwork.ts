@@ -251,11 +251,7 @@ export default class NeuralNetwork {
             layer.z = zWithBias;
             layer.input = a;
 
-            if (i === this.layers.length - 1) {
-                layer.a = layer.activation.forward(zWithBias) // Vector.from(softmax(zWithBias.toArray()));
-            } else {
-                layer.a = layer.activation.forward(zWithBias) // ReLU(zWithBias);
-            }
+            layer.a = layer.activation.forward(zWithBias)
 
             a = layer.a;
 
