@@ -205,7 +205,7 @@ export default class NeuralNetwork {
         let currentInputs = input.size;
 
         for (let i = 0; i < hidden.length; i++) {
-            const layer = hidden[i];
+            const {size, activation} = hidden[i];
             // outputs x inputs
             // new Matrix(cols, rows)
             const weight = this.initializeWeights(
@@ -233,7 +233,7 @@ export default class NeuralNetwork {
         const dW = Matrix.zeros(output.size, currentInputs);
         const dB = Vector.zeros(output.size);
 
-        this.layers.push({weight, bias, dW, dB});
+        this.layers.push({weight, bias, dW, dB, activation: output.activation});
     }
 
     forward(input: number[]) {
