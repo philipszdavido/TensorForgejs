@@ -327,16 +327,18 @@ export default class NeuralNetwork {
             for (let r = 0; r < layer.weight.rows; r++) {
                 for (let c = 0; c < layer.weight.columns; c++) {
                     const current = layer.weight.get(r, c);
-                    const grad = layer.dW.get(r, c);
+                    const grad = (layer.dW.get(r, c));
                     layer.weight.set(r, c, current - lr * grad);
+                    layer.dW.set(r, c, 0);
                 }
             }
 
             for (let j = 0; j < layer.bias.length; j++) {
                 const current = layer.bias.get(j);
-                const grad = layer.dB.get(j);
+                const grad = (layer.dB.get(j));
 
                 layer.bias.set(j, current - lr * grad);
+                layer.dB.set(j, 0);
             }
         }
     }
