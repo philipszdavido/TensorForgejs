@@ -4,6 +4,170 @@ import {elementwise_addition, elementwise_multiplication, vector_subtract} from 
 import {ReLU, ReLU_derivative} from "../math/relu";
 import softmax from "../math/softmax";
 import transpose from "../math/transpose";
+import sigmoid, {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
+import randomNormal from "../math/randomNormal";
+import clip, {normClip} from "../math/clip";
+
+// This is currently Dense
+// Will add:
+// Conv2D
+// Dropout
+// BatchNorm
+// Embedding
+// Attention
+
+type LossFunction = {
+    loss(y: Vector, pred: Vector): number;
+    gradient(y: Vector, pred: Vector): Vector;
+    fused?: boolean;
+};
+
+export const MSE: LossFunction = {
+
+    loss(y, pred) {
+        let sum = 0;
+
+        for (let i = 0; i < y.length; i++) {
+            const d = y.get(i) - pred.get(i);
+            sum += d * d;
+        }
+
+        return sum / y.length;
+    },
+
+    gradient(y, pred) {
+        return vector_subtract(pred, y);
+    }
+};
+
+export const BCE: LossFunction = {
+    loss: (y, pred) => -y.toArray().reduce((s, v, i) => {
+        const p = Math.max(pred.get(i), 1e-15);
+        return s + v * Math.log(p) + (1 - v) * Math.log(Math.max(1 - p, 1e-15));
+    }, 0) / y.length,
+    gradient: (y, pred) => Vector.from(pred.toArray().map((p, i) => {
+        const t = y.get(i);
+        const eps = 1e-15;
+        return -(t / Math.max(p, eps) - (1 - t) / Math.max(1 - p, eps)) / y.length;
+    }))
+    // loss(y, pred) {
+    //     let sum = 0;
+    //     const eps = 1e-12;
+    //
+    //     for (let i = 0; i < y.length; i++) {
+    //         const p = pred.get(i);
+    //         const t = y.get(i);
+    //
+    //         sum += -(
+    //             t * Math.log(p + eps) +
+    //             (1 - t) * Math.log(1 - p + eps)
+    //         );
+    //     }
+    //
+    //     return sum;
+    // },
+    //
+    // // _gradient(y, pred) {
+    // //     return vector_subtract(pred, y);
+    // // },
+    // gradient(y, pred) {
+    //     const gradData: number[] = [];
+    //     const eps = 1e-12;
+    //
+    //     for (let i = 0; i < y.length; i++) {
+    //         const p = pred.get(i);
+    //         const t = y.get(i);
+    //
+    //         // const g = (p - t) / (p * (1 - p) + eps);
+    //         const g = -(t / Math.max(p, 1e-15) - (1 - t) / Math.max(1 - p, 1e-15));
+    //         gradData.push(g);
+    //     }
+    //     return Vector.from(gradData);
+    // }
+};
+
+export const SoftmaxCrossEntropy: LossFunction = {
+    fused: true,
+
+    loss(y, pred) {
+        let sum = 0;
+        const eps = 1e-12;
+        for (let i = 0; i < y.length; i++) {
+            sum += -y.get(i) * Math.log(pred.get(i) + eps);
+        }
+        return sum;
+    },
+
+    gradient(y, pred) {
+        return vector_subtract(pred, y);
+    }
+};
+
+type Activation = {
+    forward(x: Vector): Vector;
+    derivative(x: Vector, y: Vector): Vector;
+    initializer(inputs: number): number;
+};
+
+export const LinearActivation: Activation = {
+    forward: (x) => x,
+    derivative: (x) => {
+        const data = new Array(x.length).fill(1);
+        return Vector.from(data);
+    },
+    initializer(inputs) {
+        return Math.sqrt(1 / inputs); // Xavier
+    }
+};
+
+export const ReLUActivation: Activation = {
+    forward: ReLU,
+    derivative: ReLU_derivative,
+    initializer(inputs) {
+        return Math.sqrt(2 / inputs);
+    }
+};
+
+export const SigmoidActivation: Activation = {
+    forward: Sigmoid,
+    derivative: Sigmoid_derivative,
+    initializer(inputs) {
+        return Math.sqrt(1 / inputs);
+    }
+};
+
+export const SoftmaxActivation: Activation = {
+
+    forward(x) {
+        return Vector.from(
+            softmax(x.toArray())
+        );
+    },
+
+    derivative(x) {
+        throw new Error(
+            "Softmax derivative should be fused with CrossEntropy"
+        );
+    },
+
+    initializer(inputs) {
+        return Math.sqrt(1 / inputs);
+    }
+};
+
+type Input = {
+    size: number;
+}
+
+type Hidden = {
+    size: number;
+    activation: Activation;
+}
+
+type Output = {
+    size: number;
+    activation: Activation;
+};
 
 type Layer = {
     weight: Matrix, // W (out × in)
