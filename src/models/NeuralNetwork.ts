@@ -282,23 +282,23 @@ export default class NeuralNetwork {
 
         let delta: Vector;
 
-            layer.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), layer.dB));
+        // if (this.loss.fused) {
+        //     delta = lossGrad;
+        // } else {
+        delta = Vector.from(
+            elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
+        );
+        //}
+
+        for (let i = this.layers.length - 1; i >= 0; i--) {
             const layer = this.layers[i];
 
-            error.print("Error");
-
-            layer.weight.print("Weight");
-            layer.input?.print("Input " + i);
-            layer.z?.print("Z");
-            layer.bias?.print("Bias " + i);
+            layer.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), layer.dB));
 
             layer.dW = Matrix.add(layer.dW, Matrix.outerProduct(delta, layer!.input!));
             layer.dW = Matrix.outerProduct(error, layer!.input!);
 
-            layer.dW.print("dW " + i);
-
-
-                const prevLayer = this.layers[i - 1];
+            if (i > 0) {
 
                 const prevLayer = this.layers[i - 1];
             if (i > 0) {
@@ -308,10 +308,10 @@ export default class NeuralNetwork {
                 error.print("Error");
 
                 // error = Vector.vectorMulMatrix(error, layer.weight)
-                error = Vector.from(
+                delta = Vector.from(
                     elementwise_multiplication(
-                        Matrix.matrixMulVector(WT, error),
-                        ReLU_derivative(this.layers[i - 1].z!),
+                        Matrix.matrixMulVector(WT, delta),
+                        prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!) //ReLU_derivative(this.layers[i - 1].z!),
                     ),
                 );
 
