@@ -340,4 +340,37 @@ export default class NeuralNetwork {
             }
         }
     }
+
+    initializeWeights(
+        outputs: number,
+        inputs: number,
+        activation: Activation
+    ): Matrix {
+
+        const std = activation.initializer(inputs);
+
+        const W = Matrix.zeros(outputs, inputs);
+
+        for (let r = 0; r < outputs; r++) {
+            for (let c = 0; c < inputs; c++) {
+
+                const u1 = Math.random() || 1e-10;
+                const u2 = Math.random();
+                const norm = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+
+                W.set(
+                    r,
+                    c,
+                    norm * std
+                );
+            }
+        }
+
+        return W;
+    }
+
+    setMode(mode: 'train' | 'eval') {
+        this.isTraining = mode === 'train';
+    }
+
 }
