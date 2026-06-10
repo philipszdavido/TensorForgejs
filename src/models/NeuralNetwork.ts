@@ -177,17 +177,32 @@ type Layer = {
     input?: Vector;
     z?: Vector; // pre-activation
     a?: Vector; // activation
+
+    activation: Activation;
+
+    activation: Activation;
 };
 
 export default class NeuralNetwork {
     layers: Layer[] = [];
 
     constructor(
-        public readonly inputSize: number,
-        public readonly hidden: number[],
-        public readonly outputSize: number,
+        public readonly input: Input,
+        public readonly hidden: Hidden[],
+        public readonly output: Output,
+        public readonly loss: LossFunction
     ) {
-        let currentInputs = inputSize;
+
+        if (
+            output.activation === SoftmaxActivation &&
+            !loss.fused
+        ) {
+            throw new Error(
+                "Softmax requires SoftmaxCrossEntropy"
+            );
+        }
+
+        let currentInputs = input.size;
 
         for (let i = 0; i < hidden.length; i++) {
             const layer = hidden[i];
