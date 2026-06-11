@@ -20,6 +20,21 @@ export class Matrix {
         this.data[r * this.columns + c] = val;
     }
 
+    getRow(r: number): Float64Array {
+        const start = r * this.columns;
+        return this.data.subarray(
+            start,
+            start + this.columns
+        );
+    }
+
+    setRow(r: number, row: Float64Array) {
+
+        const start = r * this.columns;
+
+        this.data.set(row, start);
+    }
+
     static matrixMulVector(m: Matrix, v: Vector): Vector {
         assert(m.columns === v.length, `Shape mismatch: Matrix columns (${m.columns}) must equal Vector length (${v.length})`);
         const result = new Vector(m.rows);
