@@ -25,8 +25,8 @@ export default class EmbeddingLayer {
 
             const token = token_ids[i];
 
-            assert(token >= this.vocab_size, `Token ID ${token} out of vocabulary bounds.`)
-            assert(token < 0, `Token ID ${token} out of vocabulary bounds.`);
+            assert(token <= (this.vocab_size - 1), `Token ID ${token} out of vocabulary bounds.`)
+            assert(token >= 0, `Token ID ${token} out of vocabulary bounds.`);
 
             result.setRow(
                 i,
