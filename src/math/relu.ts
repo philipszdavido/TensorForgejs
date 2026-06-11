@@ -16,7 +16,7 @@ export function ReLU(vec: Vector) {
 
 }
 
-export function ReLU_derivative(v: Vector): Vector {
+export function ReLU_derivative(v: Vector, _: any): Vector {
     const result = new Vector(v.length);
 
     for (let i = 0; i < v.length; i++) {
