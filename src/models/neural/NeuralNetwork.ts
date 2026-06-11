@@ -1,12 +1,9 @@
-import {Matrix} from "../core/Matrix";
-import {Vector} from "../core/Vector";
-import {elementwise_addition, elementwise_multiplication, vector_subtract} from "../math/vector/sum";
-import {ReLU, ReLU_derivative} from "../math/relu";
-import {softmaxVec} from "../math/softmax";
-import transpose from "../math/transpose";
-import {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
-import {meanSquareErrorVector, MSEGradient} from "../error/mse";
-import {BCEGradient, BCEVector} from "../loss/BCELoss";
+import {Matrix} from "../../core/Matrix";
+import {Vector} from "../../core/Vector";
+import {elementwise_addition, elementwise_multiplication} from "../../math/vector/sum";
+import transpose from "../../math/transpose";
+import {SoftmaxCrossEntropy} from "./SoftmaxCrossEntropy";
+import {Activation, Hidden, Input, Layer, LossFunction, Output} from "./types";
 
 // This is currently Dense
 // Will add:
@@ -16,94 +13,7 @@ import {BCEGradient, BCEVector} from "../loss/BCELoss";
 // Embedding
 // Attention
 
-type LossFunction = {
-    loss(y: Vector, pred: Vector): number;
-    gradient(y: Vector, pred: Vector): Vector;
-};
-
-export const MSE: LossFunction = {
-    loss: meanSquareErrorVector,
-    gradient: MSEGradient
-};
-
-export const BCE: LossFunction = {
-    loss: BCEVector,
-    gradient: BCEGradient
-};
-
-type Activation = {
-    forward(x: Vector): Vector;
-    derivative(x: Vector, y: Vector): Vector;
-    initializer(inputs: number): number;
-};
-
-export const LinearActivation: Activation = {
-    forward: (x) => x,
-    derivative: (x) => {
-        const data = new Array(x.length).fill(1);
-        return Vector.from(data);
-    },
-    initializer(inputs) {
-        return Math.sqrt(1 / inputs);
-    }
-};
-
-export const ReLUActivation: Activation = {
-    forward: ReLU,
-    derivative: ReLU_derivative,
-    initializer(inputs) {
-        return Math.sqrt(2 / inputs);
-    }
-};
-
-export const SigmoidActivation: Activation = {
-    forward: Sigmoid,
-    derivative: Sigmoid_derivative,
-    initializer(inputs) {
-        return Math.sqrt(1 / inputs);
-    }
-};
-
-export const SoftmaxActivation: Activation = {
-    forward: softmaxVec,
-    derivative(x) {
-        throw new Error(
-            "Softmax derivative should be fused with CrossEntropy"
-        );
-    },
-
-    initializer(inputs) {
-        return Math.sqrt(1 / inputs);
-    }
-};
-
-type Input = {
-    size: number;
-}
-
-type Hidden = {
-    size: number;
-    activation: Activation;
-}
-
-type Output = {
-    size: number;
-    activation: Activation;
-};
-
-type Layer = {
-    weight: Matrix, // W (out × in)
-    bias: Vector, // b (out)
-    dW: Matrix,
-    dB: Vector;
-    input?: Vector;
-    z?: Vector; // pre-activation
-    a?: Vector; // activation
-
-    activation: Activation;
-};
-
-export default class NeuralNetwork {
+export class NeuralNetwork {
     layers: Layer[] = [];
     private isTraining: boolean = true;
 
@@ -111,15 +21,8 @@ export default class NeuralNetwork {
         public readonly input: Input,
         public readonly hidden: Hidden[],
         public readonly output: Output,
-        public readonly loss: LossFunction
+        public readonly loss: LossFunction | SoftmaxCrossEntropy
     ) {
-
-        if (
-            output.activation === SoftmaxActivation) {
-            throw new Error(
-                "Softmax requires SoftmaxCrossEntropy"
-            );
-        }
 
         let currentInputs = input.size;
 
@@ -181,16 +84,24 @@ export default class NeuralNetwork {
     backward(y: number[]) {
 
         const output = this.layers[this.layers.length - 1];
-        const Predicted = output.a!;
 
         const Y: Vector = Vector.from(y);
 
-        // get the output error
-        const lossGrad = this.loss.gradient(Y, Predicted);
+        let delta!: Vector;
 
-        let delta: Vector = Vector.from(
-            elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
-        );
+        if (this.loss instanceof SoftmaxCrossEntropy) {
+            delta = this.loss.fusedGradient(Y);
+        } else {
+
+            // get the output error
+            const Predicted = output.a!;
+            const lossGrad = (this.loss as LossFunction).gradient(Y, Predicted);
+
+            delta = Vector.from(
+                elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
+            );
+
+        }
 
         for (let i = this.layers.length - 1; i >= 0; i--) {
             const layer = this.layers[i];
