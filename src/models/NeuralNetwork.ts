@@ -2,9 +2,11 @@ import {Matrix} from "../core/Matrix";
 import {Vector} from "../core/Vector";
 import {elementwise_addition, elementwise_multiplication, vector_subtract} from "../math/vector/sum";
 import {ReLU, ReLU_derivative} from "../math/relu";
-import softmax from "../math/softmax";
+import {softmaxVec} from "../math/softmax";
 import transpose from "../math/transpose";
 import {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
+import {meanSquareErrorVector, MSEGradient} from "../error/mse";
+import {BCEGradient, BCEVector} from "../loss/BCELoss";
 
 // This is currently Dense
 // Will add:
@@ -17,54 +19,16 @@ import {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
 type LossFunction = {
     loss(y: Vector, pred: Vector): number;
     gradient(y: Vector, pred: Vector): Vector;
-    fused?: boolean;
 };
 
 export const MSE: LossFunction = {
-
-    loss(y, pred) {
-        let sum = 0;
-
-        for (let i = 0; i < y.length; i++) {
-            const d = y.get(i) - pred.get(i);
-            sum += d * d;
-        }
-
-        return sum / y.length;
-    },
-
-    gradient(y, pred) {
-        return vector_subtract(pred, y);
-    }
+    loss: meanSquareErrorVector,
+    gradient: MSEGradient
 };
 
 export const BCE: LossFunction = {
-    loss: (y, pred) => -y.toArray().reduce((s, v, i) => {
-        const p = Math.max(pred.get(i), 1e-15);
-        return s + v * Math.log(p) + (1 - v) * Math.log(Math.max(1 - p, 1e-15));
-    }, 0) / y.length,
-    gradient: (y, pred) => Vector.from(pred.toArray().map((p, i) => {
-        const t = y.get(i);
-        const eps = 1e-15;
-        return -(t / Math.max(p, eps) - (1 - t) / Math.max(1 - p, eps)) / y.length;
-    }))
-};
-
-export const SoftmaxCrossEntropy: LossFunction = {
-    fused: true,
-
-    loss(y, pred) {
-        let sum = 0;
-        const eps = 1e-12;
-        for (let i = 0; i < y.length; i++) {
-            sum += -y.get(i) * Math.log(pred.get(i) + eps);
-        }
-        return sum;
-    },
-
-    gradient(y, pred) {
-        return vector_subtract(pred, y);
-    }
+    loss: BCEVector,
+    gradient: BCEGradient
 };
 
 type Activation = {
@@ -101,13 +65,7 @@ export const SigmoidActivation: Activation = {
 };
 
 export const SoftmaxActivation: Activation = {
-
-    forward(x) {
-        return Vector.from(
-            softmax(x.toArray())
-        );
-    },
-
+    forward: softmaxVec,
     derivative(x) {
         throw new Error(
             "Softmax derivative should be fused with CrossEntropy"
@@ -157,9 +115,7 @@ export default class NeuralNetwork {
     ) {
 
         if (
-            output.activation === SoftmaxActivation &&
-            !loss.fused
-        ) {
+            output.activation === SoftmaxActivation) {
             throw new Error(
                 "Softmax requires SoftmaxCrossEntropy"
             );
@@ -299,11 +255,7 @@ export default class NeuralNetwork {
                 const u2 = Math.random();
                 const norm = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 
-                W.set(
-                    r,
-                    c,
-                    norm * std
-                );
+                W.set(r, c, norm * std);
             }
         }
 
