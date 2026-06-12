@@ -3,7 +3,7 @@ import {Vector} from "../../core/Vector";
 import {elementwise_addition, elementwise_multiplication} from "../../math/vector/sum";
 import transpose from "../../math/transpose";
 import {SoftmaxCrossEntropy} from "./SoftmaxCrossEntropy";
-import {Activation, Hidden, Input, Layer, LossFunction, Output} from "./types";
+import {Activation, ActivationEnum, ActivationUse, Hidden, Input, Layer, LossFunction, Output} from "./Types";
 
 // This is currently Dense
 // Will add:
@@ -33,7 +33,7 @@ export class NeuralNetwork {
             const weight = this.initializeWeights(
                 size,
                 currentInputs,
-                activation
+                this.getActivation(activation)
             );
 
             const dW = Matrix.zeros(size, currentInputs);
@@ -47,7 +47,7 @@ export class NeuralNetwork {
         const weight = this.initializeWeights(
             output.size,
             currentInputs,
-            output.activation
+            this.getActivation(output.activation)
         );
 
         const bias = Vector.zeros(output.size);
@@ -72,7 +72,7 @@ export class NeuralNetwork {
             layer.z = zWithBias;
             layer.input = a;
 
-            layer.a = layer.activation.forward(zWithBias)
+            layer.a = this.getActivation(layer.activation).forward(zWithBias)
 
             a = layer.a;
 
@@ -98,7 +98,7 @@ export class NeuralNetwork {
             const lossGrad = (this.loss as LossFunction).gradient(Y, Predicted);
 
             delta = Vector.from(
-                elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
+                elementwise_multiplication(lossGrad, this.getActivation(output.activation).derivative(output.z!, output.a!))
             );
 
         }
@@ -118,7 +118,7 @@ export class NeuralNetwork {
                 delta = Vector.from(
                     elementwise_multiplication(
                         Matrix.matrixMulVector(WT, delta),
-                        prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
+                        this.getActivation(prevLayer.activation).derivative(prevLayer.a!, prevLayer.z!)
                     ),
                 );
 
@@ -182,6 +182,10 @@ export class NeuralNetwork {
 
     setMode(mode: 'train' | 'eval') {
         this.isTraining = mode === 'train';
+    }
+
+    getActivation(type: ActivationEnum) {
+        return ActivationUse[type];
     }
 
 }
