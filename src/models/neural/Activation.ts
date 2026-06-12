@@ -1,5 +1,5 @@
 import {Vector} from "../../core/Vector";
-import {Activation} from "./types";
+import {Activation} from "./Types";
 import {ReLU, ReLU_derivative} from "../../math/relu";
 import {Sigmoid, Sigmoid_derivative} from "../../math/sigmoid";
 import {SoftmaxCrossEntropy} from "./SoftmaxCrossEntropy";
