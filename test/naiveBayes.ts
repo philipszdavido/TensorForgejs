@@ -1,14 +1,14 @@
-import NaiveBayes, { DataSet } from "../models/NaiveBayes";
+import NaiveBayes, {DataSet} from "../src/models/NaiveBayes";
 
 const dataset: DataSet[] = [
-  {
-    data: "click this link to win lottery",
-    label: "Spam",
-  },
-  {
-    data: "hello how are you win ?",
-    label: "NotSpam",
-  },
+    {
+        data: "click this link to win lottery",
+        label: "Spam",
+    },
+    {
+        data: "hello how are you win ?",
+        label: "NotSpam",
+    },
 ];
 
 // const nBayes = new NaiveBayes(dataset);

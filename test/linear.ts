@@ -1,8 +1,8 @@
-import { LinearRegression } from "../models/LinearRegression";
-import LinearRegressionTrainer from "../trainers/LinearRegression";
-import StochasticGD from "../optimizers/SGD";
-import Lasso from "../regularizers/Lasso";
-import MSELoss from "../loss/MSELoss";
+import {LinearRegression} from "../src/models/LinearRegression";
+import LinearRegressionTrainer from "../src/trainers/LinearRegression";
+import StochasticGD from "../src/optimizers/SGD";
+import Lasso from "../src/regularizers/Lasso";
+import MSELoss from "../src/loss/MSELoss";
 
 export const data = [[90], [50], [40], [30], [20], [10]];
 

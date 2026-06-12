@@ -1,7 +1,7 @@
-import PolynomialRegression from "../models/PolyNomialRegression";
-import PolynomialRegressionTrainer from "../trainers/PolynomialRegressionTrainer";
-import MSELoss from "../loss/MSELoss";
-import StochasticGD from "../optimizers/SGD";
+import PolynomialRegression from "../src/models/PolyNomialRegression";
+import PolynomialRegressionTrainer from "../src/trainers/PolynomialRegressionTrainer";
+import MSELoss from "../src/loss/MSELoss";
+import StochasticGD from "../src/optimizers/SGD";
 
 // const features = [[-5], [-4], [-3], [-2], [-1], [0], [1], [2], [3], [4], [5]];
 // const labels = [16, 9, 4, 1, 0, 1, 4, 9, 16, 25, 36];

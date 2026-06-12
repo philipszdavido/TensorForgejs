@@ -1,4 +1,4 @@
-import KMeans, {DataLabel} from "../models/KMeans";
+import KMeans, {DataLabel} from "../src/models/KMeans";
 
 let samples: DataLabel[] = [
     {
