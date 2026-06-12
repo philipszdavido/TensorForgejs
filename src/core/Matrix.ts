@@ -184,4 +184,13 @@ export class Matrix {
         return result;
     }
 
+    toNestedArray(): number[][] {
+        const result: number[][] = [];
+        for (let r = 0; r < this.rows; r++) {
+            const rowData = Array.from(this.getRow(r));
+            result.push(rowData);
+        }
+        return result;
+    }
+
 }
