@@ -49,7 +49,7 @@ function parseLabels(filename: string): number[] {
     const compressedBuffer = fs.readFileSync(filePath);
     const buffer = zlib.gunzipSync(compressedBuffer);
 
-    const magicNumber = buffer.readInt32BE(0); // Expected: 2049
+    const magicNumber = buffer.readInt32BE(0);
     const numItems = buffer.readInt32BE(4);
 
     if (magicNumber !== 2049) throw new Error(`Invalid magic number in ${filename}`);
@@ -78,4 +78,3 @@ export function loadLocalMNIST() {
     };
 }
 
-``

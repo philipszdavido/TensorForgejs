@@ -1,11 +1,27 @@
 import {loadLocalMNIST} from "./mnistLoader";
-import {NeuralNetwork, ReLUActivation, SoftmaxPassThrough, SoftmaxCE} from "../src/models/neural";
+import {NeuralNetwork, SoftmaxCE, ActivationEnum} from "../src/models/neural";
 import {Vector} from "../src/core/Vector";
+import {writeFileSync} from "node:fs";
 
 function oneHot(digit: number): number[] {
     const arr = new Array(10).fill(0);
     arr[digit] = 1;
     return arr;
+}
+
+function exportNetworkToJSON(network: NeuralNetwork): string {
+    const modelData = {
+        weights: network.layers.map(layer => layer.weight.toNestedArray()),
+        biases: network.layers.map(layer => layer.bias.toArray()),
+
+        architecture: {
+            input: network.input,
+            hiddenLayers: network.hidden.map(h => ({size: h.size, activation: h.activation})),
+            output: network.output
+        }
+    };
+
+    return JSON.stringify(modelData, null, 2);
 }
 
 function runPipeline() {
@@ -14,14 +30,15 @@ function runPipeline() {
     const dataset = loadLocalMNIST();
 
     const nn = new NeuralNetwork(
-        {size: 784}, // Input size matches 28x28 flattening
-        [{size: 64, activation: ReLUActivation}],
-        {size: 10, activation: SoftmaxPassThrough},
+        {size: 784},
+        // [{size: 128, activation: ReLUActivation}],
+        [{size: 128, activation: ActivationEnum.relu}, {size: 64, activation: ActivationEnum.relu}],
+        {size: 10, activation: ActivationEnum.softmax},
         SoftmaxCE
     );
 
-    const epochs = 3;
-    const learningRate = 0.05;
+    const epochs = 10;
+    const learningRate = 0.02;
     const totalTrainingSamples = dataset.train.images.length;
 
     console.log("\nStarting training passes...");
@@ -60,6 +77,11 @@ function runPipeline() {
 
     const accuracy = (successfulHits / dataset.test.images.length) * 100;
     console.log(`Evaluation Complete. Accuracy: ${accuracy.toFixed(2)}%\n`);
+
+    const finalJson = exportNetworkToJSON(nn);
+
+    writeFileSync("./image28x28-model.json", (finalJson));
+
 }
 
 runPipeline();

@@ -1,5 +1,7 @@
-import {NeuralNetwork, BCE, ReLUActivation, SigmoidActivation} from "../src/models/neural";
+import {ActivationEnum, BCE, LossFunction, NeuralNetwork} from "../src/models/neural";
 import {writeFileSync} from "node:fs";
+import {Matrix} from "../src/core/Matrix";
+import {Vector} from "../src/core/Vector";
 
 const vocabulary = ["buy", "now", "free", "meeting", "project", "click", "hello"];
 const vocabSize = vocabulary.length;
@@ -10,9 +12,9 @@ function exportNetworkToJSON(network: NeuralNetwork, vocabulary: string[]): stri
         biases: network.layers.map(layer => layer.bias.toArray()),
 
         architecture: {
-            inputSize: network.input.size,
-            hiddenLayers: network.hidden.map(h => h.size),
-            outputSize: network.output.size
+            input: network.input,
+            hiddenLayers: network.hidden,
+            output: network.output
         },
 
         vocabulary
@@ -29,7 +31,7 @@ function fromJSON(jsonString: string, lossFunction: LossFunction, hiddenActivati
 
     const hiddenConfig = architecture.hiddenLayers.map((size: number, idx: number) => ({
         size,
-        activation: hiddenActivations[idx] || hiddenActivations[0] // fallback if array or single object passed
+        activation: hiddenActivations[idx] || hiddenActivations[0]
     }));
 
     const outputConfig = {
@@ -37,17 +39,15 @@ function fromJSON(jsonString: string, lossFunction: LossFunction, hiddenActivati
         activation: outputActivation
     };
 
-    // 2. Instantiate a clean network shell with zeroed dimensions
+    // Instantiate a clean network shell with zeroed dimensions
     const network = new NeuralNetwork(inputConfig, hiddenConfig, outputConfig, lossFunction);
 
-    // 3. Hydrate the blank matrices and vectors with your trained parameters
+    // Hydrate the blank matrices and vectors with your trained parameters
     for (let i = 0; i < network.layers.length; i++) {
         const layer = network.layers[i];
 
-        // Rebuild your internal Matrix from the 2D nested array
         layer.weight = Matrix.from(weights[i]);
 
-        // Rebuild your internal Vector from the 1D plain array
         layer.bias = Vector.from(biases[i]);
     }
 
@@ -66,8 +66,8 @@ function textToVector(text: string): number[] {
 
 const spamNet = new NeuralNetwork(
     {size: vocabSize},
-    [{size: 4, activation: ReLUActivation}],
-    {size: 1, activation: SigmoidActivation},
+    [{size: 4, activation: ActivationEnum.relu}],
+    {size: 1, activation: ActivationEnum.sigmoid},
     BCE
 );
 
@@ -78,7 +78,7 @@ const trainingData = [
 
 const learningRate = 0.1;
 
-for (let epoch = 0; epoch < 100; epoch++) {
+for (let epoch = 0; epoch < 1000; epoch++) {
     for (const item of trainingData) {
         const inputVector = textToVector(item.text);
 
@@ -95,5 +95,5 @@ const prediction = spamNet.forward(testVector);
 console.log(`Spam Probability: ${prediction.get(0)}`);
 
 const finalJson = exportNetworkToJSON(spamNet, vocabulary);
-console.log(finalJson);
-writeFileSync("./spam-model.json", JSON.stringify(finalJson));
+
+writeFileSync("./spam-model.json", (finalJson));
