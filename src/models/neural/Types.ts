@@ -1,5 +1,18 @@
 import {Vector} from "../../core/Vector";
 import {Matrix} from "../../core/Matrix";
+import {ReLUActivation, SigmoidActivation, SoftmaxPassThrough} from "./Activation";
+
+export enum ActivationEnum {
+    relu,
+    softmax,
+    sigmoid,
+}
+
+export const ActivationUse = {
+    0: ReLUActivation,
+    1: SoftmaxPassThrough,
+    2: SigmoidActivation
+}
 
 export type Activation = {
     forward(x: Vector): Vector;
@@ -18,12 +31,12 @@ export type Input = {
 
 export type Hidden = {
     size: number;
-    activation: Activation;
+    activation: ActivationEnum;
 }
 
 export type Output = {
     size: number;
-    activation: Activation;
+    activation: ActivationEnum;
 };
 
 export type Layer = {
@@ -35,5 +48,5 @@ export type Layer = {
     z?: Vector; // pre-activation
     a?: Vector; // activation
 
-    activation: Activation;
+    activation: ActivationEnum;
 };
