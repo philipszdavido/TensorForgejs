@@ -1,4 +1,4 @@
-import {LossFunction} from "./types";
+import {LossFunction} from "./Types";
 import {meanSquareErrorVector, MSEGradient} from "../../error/mse";
 import {BCEGradient, BCEVector} from "../../loss/BCELoss";
 
