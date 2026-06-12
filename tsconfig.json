@@ -50,6 +50,8 @@
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
-    "declaration": true
-  }
+    "declaration": true,
+    "types": ["node"],
+  },
+  "exclude": ["image", "dist", "docs", "test", "ui"]
 }
