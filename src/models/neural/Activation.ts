@@ -2,8 +2,6 @@ import {Vector} from "../../core/Vector";
 import {Activation} from "./types";
 import {ReLU, ReLU_derivative} from "../../math/relu";
 import {Sigmoid, Sigmoid_derivative} from "../../math/sigmoid";
-import {softmaxVec} from "../../math/softmax";
-import {NeuralNetwork} from "./NeuralNetwork";
 import {SoftmaxCrossEntropy} from "./SoftmaxCrossEntropy";
 
 export const LinearActivation: Activation = {
@@ -32,19 +30,6 @@ export const SigmoidActivation: Activation = {
         return Math.sqrt(1 / inputs);
     }
 };
-
-// export const SoftmaxActivation: Activation = {
-//     forward: softmaxVec,
-//     derivative(x) {
-//         throw new Error(
-//             "Softmax derivative should be fused with CrossEntropy"
-//         );
-//     },
-//
-//     initializer(inputs) {
-//         return Math.sqrt(1 / inputs);
-//     }
-// };
 
 export const SoftmaxCE = new SoftmaxCrossEntropy();
 export const SoftmaxPassThrough = {
