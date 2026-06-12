@@ -1,5 +1,5 @@
 {
-  "name": "tensorforge",
+  "name": "TensorForgejs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,7 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@types/node": "^25.8.0",
+    "@types/node": "^25.9.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   },
