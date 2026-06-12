@@ -1,7 +1,7 @@
-import {Matrix} from "../core/Matrix";
-import {Vector} from "../core/Vector";
-import relu, {ReLU_derivative} from "../math/relu";
-import {Sigmoid, Sigmoid_derivative} from "../math/sigmoid";
+import {Matrix} from "../src/core/Matrix";
+import {Vector} from "../src/core/Vector";
+import relu, {ReLU_derivative} from "../src/math/relu";
+import {Sigmoid, Sigmoid_derivative} from "../src/math/sigmoid";
 
 export type ActivationName = "sigmoid" | "relu" | "leaky_relu" | "tanh" | "linear" | "swish" | "elu";
 export type LossName = "mse" | "mae" | "cross_entropy" | "binary_cross_entropy";
@@ -29,7 +29,7 @@ export interface NeuralNetworkConfig {
 
 type Activation = {
     forward(x: Vector): Vector;
-    derivative(z: Vector, a: Vector): Vector; // Accepts both pre & post evaluations for optimization stability
+    derivative(z: Vector, a: Vector): Vector;
     initScale(inputs: number, outputs: number): number;
 };
 
@@ -225,12 +225,12 @@ export default class NeuralNetwork {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             const layer = this.layers[i];
 
-            // Accumulate bias gradients (dB += delta)
+            // (dB += delta)
             for (let j = 0; j < layer.bias.length; j++) {
                 layer.dB.set(j, layer.dB.get(j) + delta.get(j));
             }
 
-            // Accumulate weight gradients with L1/L2 updates: dW += (delta ⊗ input)
+            // dW += (delta ⊗ input)
             for (let r = 0; r < layer.weight.rows; r++) {
                 const dVal = delta.get(r);
                 for (let c = 0; c < layer.weight.columns; c++) {
@@ -243,7 +243,6 @@ export default class NeuralNetwork {
                 }
             }
 
-            // Route delta back into previous hidden layers (Transpose WT inline)
             if (i > 0) {
                 const prevLayer = this.layers[i - 1];
                 const nextDelta = new Vector(prevLayer.bias.length);
@@ -271,7 +270,7 @@ export default class NeuralNetwork {
         const {optimizer, beta1, beta2, epsilon, momentum, rmsDecay} = this.config;
 
         for (const layer of this.layers) {
-            // Weights Updates
+
             for (let r = 0; r < layer.weight.rows; r++) {
                 for (let c = 0; c < layer.weight.columns; c++) {
                     const g = layer.dW.get(r, c) / batchSize;
@@ -301,15 +300,13 @@ export default class NeuralNetwork {
                             layer.weight.set(r, c, wVal - (lr * g) / (Math.sqrt(rms) + epsilon));
                             break;
                         }
-                        default: // sgd
-                            console.log("sgd")
+                        default:
                             layer.weight.set(r, c, wVal - lr * g);
                     }
-                    layer.dW.set(r, c, 0); // Flush gradients
+                    layer.dW.set(r, c, 0);
                 }
             }
 
-            // Biases Updates
             for (let j = 0; j < layer.bias.length; j++) {
                 const g = layer.dB.get(j) / batchSize;
                 const bVal = layer.bias.get(j);
@@ -341,7 +338,7 @@ export default class NeuralNetwork {
                     default:
                         layer.bias.set(j, bVal - lr * g);
                 }
-                layer.dB.set(j, 0); // Flush gradients
+                layer.dB.set(j, 0);
             }
         }
     }
