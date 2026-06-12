@@ -2,7 +2,7 @@ import assert from "../assert/assert";
 
 // a 1D array
 export class Vector {
-    public readonly data: Float64Array; // Upgrade to 64-bit precision matching Claude edition
+    private readonly data: Float64Array;
 
     constructor(size: number) {
         this.data = new Float64Array(size);
@@ -60,7 +60,7 @@ export class Vector {
     }
 
     // @TODO: test this
-    static fromData(data: Float32Array) {
+    static fromData(data: Float64Array) {
         const newData = new Vector(data.length);
 
         for (let index = 0; index < data.length; index++) {
@@ -84,5 +84,13 @@ export class Vector {
 
     static zeros(size: number): Vector {
         return new Vector(size);
+    }
+
+    addVectors(v1: Vector, v2: Vector): Vector {
+        const res = new Vector(v1.length);
+        for (let i = 0; i < v1.length; i++) {
+            res.set(i, v1.get(i) + v2.get(i));
+        }
+        return res;
     }
 }
