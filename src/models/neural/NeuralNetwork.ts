@@ -173,6 +173,13 @@ export class NeuralNetwork {
         return W;
     }
 
+    public getWeightsAndBiases() {
+        return {
+            weights: this.layers.map(layer => layer.weight.toNestedArray()),
+            biases: this.layers.map(layer => layer.bias.toArray())
+        };
+    }
+
     setMode(mode: 'train' | 'eval') {
         this.isTraining = mode === 'train';
     }
