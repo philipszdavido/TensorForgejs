@@ -2,6 +2,7 @@ import DenseLayer from "../DenseLayer";
 import {Vector} from "../../../core/Vector";
 import {SoftmaxCrossEntropy} from "../SoftmaxCrossEntropy";
 import {LossFunction} from "../Types";
+import {Matrix} from "../../../core/Matrix";
 
 export class NeuralNetworkDense {
     constructor(
@@ -62,6 +63,16 @@ export class NeuralNetworkDense {
         for (let i = 0; i < this.denseLayers.length; i++) {
             const denseLayer = this.denseLayers[i];
             denseLayer.updateWeights(lr)
+        }
+    }
+
+    public applyBatchGradients(batchSize: number, learningRate: number) {
+        for (const layer of this.denseLayers) {
+
+            layer.dW = Matrix.multiplyScalar(layer.dW, 1 / batchSize);
+            layer.dB = Vector.from(layer.dB.toArray().map(b => b / batchSize));
+
+            layer.updateWeights(learningRate);
         }
     }
 
