@@ -224,4 +224,18 @@ export class Matrix {
         return result;
     }
 
+    copy() {
+
+        const c = new Matrix(this.rows, this.columns);
+
+        for (let ii = 0; ii < this.rows; ii++) {
+            for (let jj = 0; jj < this.columns; jj++) {
+                c.set(ii, jj, this.get(ii, jj));
+            }
+        }
+
+        return c;
+
+    }
+
 }
