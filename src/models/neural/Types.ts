@@ -9,9 +9,9 @@ export enum ActivationEnum {
 }
 
 export const ActivationUse = {
-    0: ReLUActivation,
-    1: SoftmaxPassThrough,
-    2: SigmoidActivation
+    [ActivationEnum.relu]: ReLUActivation,
+    [ActivationEnum.softmax]: SoftmaxPassThrough,
+    [ActivationEnum.sigmoid]: SigmoidActivation
 }
 
 export type Activation = {
