@@ -1,6 +1,8 @@
 import {Matrix} from "../../core/Matrix";
 import {Vector} from "../../core/Vector";
 import {Activation, ActivationEnum, ActivationUse} from "./Types";
+import {elementwise_addition, elementwise_multiplication} from "../../math/vector/sum";
+import transpose from "../../math/transpose";
 
 // this will have an input and output, activation
 export default class DenseLayer {
@@ -31,7 +33,43 @@ export default class DenseLayer {
 
     }
 
-    forward(input: DenseLayer) {
+    forward(input: number[]) {
+
+        let a: Vector = Vector.from(input);
+
+        const z = Matrix.matrixMulVector(this.weight, a);
+
+        const zWithBias = Vector.from(elementwise_addition(z, this.bias));
+
+        this.z = zWithBias;
+        this.input = a;
+
+        this.a = this.activation.forward(zWithBias)
+
+        a = this.a;
+
+        return a;
+
+    }
+
+    backward(delta: Vector) {
+
+        this.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), this.dB));
+
+        this.dW = Matrix.add(this.dW, Matrix.outerProduct(delta, this!.input!));
+
+
+        const WT = transpose(this.weight);
+        return Matrix.matrixMulVector(WT, delta)
+
+    }
+
+    updateWeights(learningRate: number) {
+        this.weight = Matrix.sub(this.weight, Matrix.multiplyScalar(this.dW, learningRate))
+        this.dW = Matrix.zeros(this.dW.rows, this.dW.columns)
+
+        this.bias = Vector.subVectors(this.bias, Vector.multiplyScalar(this.dB, learningRate))
+        this.dB = Vector.zeros(this.dB.length)
     }
 
     initializeWeights(
