@@ -1,253 +1,432 @@
-<!-- <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Reference - TensorForge Docs</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <h1>API Reference</h1>
+<!--<!doctype html>-->
+<!--<html lang="en">-->
+<!--  <head>-->
+<!--    <meta charset="UTF-8" />-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+<!--    <title>API Reference - TensorForge Docs</title>-->
+<!--    <link rel="stylesheet" href="style.css" />-->
+<!--  </head>-->
+<!--  <body>-->
+<!--    <h1>API Reference</h1>-->
 
-    <h2>Top-Level Exports</h2>
-    <ul>
-      <li>
-        <strong>Core</strong>: <code>Matrix</code>, <code>Vector</code>,
-        <code>Tensor</code>
-      </li>
-      <li>
-        <strong>Models</strong>: <code>LinearRegression</code>,
-        <code>LogisticRegression</code>, <code>NaiveBayes</code>,
-        <code>DiscretePerceptron</code>, <code>PolynomialRegression</code>,
-        <code>KNN</code>, <code>WeightedKNN</code>, <code>KMeans</code>,
-        <code>LinearSVM</code>, <code>PolynomialKernelSVM</code>,
-        <code>SigmoidKernelSVM</code>
-      </li>
-      <li>
-        <strong>Neural</strong>: <code>NeuralNetwork</code>,
-        <code>DenseLayer</code>, <code>SoftmaxCrossEntropy</code>
-      </li>
-      <li><strong>API</strong>: <code>ModelInferenceEngine</code></li>
-      <li>
-        <strong>Loss</strong>: <code>MSELoss</code>, <code>BCELoss</code>,
-        <code>CrossEntropy</code>, <code>hinge</code>
-      </li>
-      <li>
-        <strong>Math</strong>: <code>relu</code>, <code>sigmoid</code>,
-        <code>softmax</code>, <code>transpose</code>, <code>reshape</code>,
-        <code>standardize</code>, <code>sum</code>, <code>arange</code>,
-        <code>zeros</code>, <code>ones</code>, <code>gather</code>,
-        <code>scatter</code>, <code>slice</code>, <code>minmax</code>,
-        <code>euclidean_distance</code>
-      </li>
-    </ul>
+<!--    <h2>Top-Level Exports</h2>-->
+<!--    <ul>-->
+<!--      <li>-->
+<!--        <strong>Core</strong>: <code>Matrix</code>, <code>Vector</code>,-->
+<!--        <code>Tensor</code>-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <strong>Models</strong>: <code>LinearRegression</code>,-->
+<!--        <code>LogisticRegression</code>, <code>NaiveBayes</code>,-->
+<!--        <code>DiscretePerceptron</code>, <code>PolynomialRegression</code>,-->
+<!--        <code>KNN</code>, <code>WeightedKNN</code>, <code>KMeans</code>,-->
+<!--        <code>LinearSVM</code>, <code>PolynomialKernelSVM</code>,-->
+<!--        <code>SigmoidKernelSVM</code>-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <strong>Neural</strong>: <code>NeuralNetwork</code>,-->
+<!--        <code>DenseLayer</code>, <code>SoftmaxCrossEntropy</code>-->
+<!--      </li>-->
+<!--      <li><strong>API</strong>: <code>ModelInferenceEngine</code></li>-->
+<!--      <li>-->
+<!--        <strong>Loss</strong>: <code>MSELoss</code>, <code>BCELoss</code>,-->
+<!--        <code>CrossEntropy</code>, <code>hinge</code>-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <strong>Math</strong>: <code>relu</code>, <code>sigmoid</code>,-->
+<!--        <code>softmax</code>, <code>transpose</code>, <code>reshape</code>,-->
+<!--        <code>standardize</code>, <code>sum</code>, <code>arange</code>,-->
+<!--        <code>zeros</code>, <code>ones</code>, <code>gather</code>,-->
+<!--        <code>scatter</code>, <code>slice</code>, <code>minmax</code>,-->
+<!--        <code>euclidean_distance</code>-->
+<!--      </li>-->
+<!--    </ul>-->
 
-    <h2>Core Structures</h2>
-    <h3>Vector</h3>
-    <p>1D numeric array with typed memory.</p>
-    <ul>
-      <li><code>new Vector(size)</code></li>
-      <li><code>set(index, value)</code></li>
-      <li><code>get(index)</code></li>
-      <li><code>sum()</code></li>
-      <li><code>avg()</code></li>
-      <li><code>toArray()</code></li>
-      <li><code>print(label?)</code></li>
-      <li><code>static from(array)</code></li>
-      <li><code>static zeros(size)</code></li>
-      <li><code>static random(size)</code></li>
-    </ul>
+<!--    <h2>Core Structures</h2>-->
+<!--    <h3>Vector</h3>-->
+<!--    <p>1D numeric array with typed memory.</p>-->
+<!--    <ul>-->
+<!--      <li><code>new Vector(size)</code></li>-->
+<!--      <li><code>set(index, value)</code></li>-->
+<!--      <li><code>get(index)</code></li>-->
+<!--      <li><code>sum()</code></li>-->
+<!--      <li><code>avg()</code></li>-->
+<!--      <li><code>toArray()</code></li>-->
+<!--      <li><code>print(label?)</code></li>-->
+<!--      <li><code>static from(array)</code></li>-->
+<!--      <li><code>static zeros(size)</code></li>-->
+<!--      <li><code>static random(size)</code></li>-->
+<!--    </ul>-->
 
-    <h3>Matrix</h3>
-    <p>2D numeric matrix with row-major storage.</p>
-    <ul>
-      <li><code>new Matrix(rows, columns)</code></li>
-      <li><code>set(r, c, value)</code></li>
-      <li><code>get(r, c)</code></li>
-      <li><code>getRow(r)</code></li>
-      <li><code>setRow(r, Float64Array)</code></li>
-      <li><code>print(label?)</code></li>
-      <li><code>static zeros(rows, columns)</code></li>
-      <li><code>static matrixMulVector(matrix, vector)</code></li>
-      <li><code>static outerProduct(vectorA, vectorB)</code></li>
-      <li><code>static add(matrixA, matrixB)</code></li>
-    </ul>
+<!--    <h3>Matrix</h3>-->
+<!--    <p>2D numeric matrix with row-major storage.</p>-->
+<!--    <ul>-->
+<!--      <li><code>new Matrix(rows, columns)</code></li>-->
+<!--      <li><code>set(r, c, value)</code></li>-->
+<!--      <li><code>get(r, c)</code></li>-->
+<!--      <li><code>getRow(r)</code></li>-->
+<!--      <li><code>setRow(r, Float64Array)</code></li>-->
+<!--      <li><code>print(label?)</code></li>-->
+<!--      <li><code>static zeros(rows, columns)</code></li>-->
+<!--      <li><code>static matrixMulVector(matrix, vector)</code></li>-->
+<!--      <li><code>static outerProduct(vectorA, vectorB)</code></li>-->
+<!--      <li><code>static add(matrixA, matrixB)</code></li>-->
+<!--    </ul>-->
 
-    <h3>Tensor</h3>
-    <p>Flexible N-dimensional numeric container.</p>
-    <ul>
-      <li><code>new Tensor(data)</code></li>
-      <li><code>clone()</code></li>
-      <li><code>static zeros(size)</code></li>
-    </ul>
+<!--    <h3>Tensor</h3>-->
+<!--    <p>Flexible N-dimensional numeric container.</p>-->
+<!--    <ul>-->
+<!--      <li><code>new Tensor(data)</code></li>-->
+<!--      <li><code>clone()</code></li>-->
+<!--      <li><code>static zeros(size)</code></li>-->
+<!--    </ul>-->
 
-    <h2>Models</h2>
-    <ul>
-      <li>
-        <strong>LinearRegression</strong>: Linear predictive model with forward
-        and backward methods.
-      </li>
-      <li>
-        <strong>LogisticRegression</strong>: Binary classifier with sigmoid
-        activation.
-      </li>
-      <li><strong>NaiveBayes</strong>: Probabilistic classification model.</li>
-      <li>
-        <strong>DiscretePerceptron</strong>: Simple binary classifier with step
-        activation.
-      </li>
-      <li>
-        <strong>PolynomialRegression</strong>: Polynomial feature regression
-        model.
-      </li>
-      <li><strong>KNN</strong>: K-nearest neighbors classification.</li>
-      <li><strong>WeightedKNN</strong>: Weighted KNN variant.</li>
-      <li><strong>KMeans</strong>: Unsupervised clustering algorithm.</li>
-      <li>
-        <strong>LinearSVM</strong>: Support Vector Machine with linear kernel.
-      </li>
-      <li><strong>PolynomialKernelSVM</strong>: SVM with polynomial kernel.</li>
-      <li><strong>SigmoidKernelSVM</strong>: SVM with sigmoid kernel.</li>
-    </ul>
+<!--    <h2>Models</h2>-->
+<!--    <ul>-->
+<!--      <li>-->
+<!--        <strong>LinearRegression</strong>: Linear predictive model with forward-->
+<!--        and backward methods.-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <strong>LogisticRegression</strong>: Binary classifier with sigmoid-->
+<!--        activation.-->
+<!--      </li>-->
+<!--      <li><strong>NaiveBayes</strong>: Probabilistic classification model.</li>-->
+<!--      <li>-->
+<!--        <strong>DiscretePerceptron</strong>: Simple binary classifier with step-->
+<!--        activation.-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <strong>PolynomialRegression</strong>: Polynomial feature regression-->
+<!--        model.-->
+<!--      </li>-->
+<!--      <li><strong>KNN</strong>: K-nearest neighbors classification.</li>-->
+<!--      <li><strong>WeightedKNN</strong>: Weighted KNN variant.</li>-->
+<!--      <li><strong>KMeans</strong>: Unsupervised clustering algorithm.</li>-->
+<!--      <li>-->
+<!--        <strong>LinearSVM</strong>: Support Vector Machine with linear kernel.-->
+<!--      </li>-->
+<!--      <li><strong>PolynomialKernelSVM</strong>: SVM with polynomial kernel.</li>-->
+<!--      <li><strong>SigmoidKernelSVM</strong>: SVM with sigmoid kernel.</li>-->
+<!--    </ul>-->
 
-    <h2>Neural Network API</h2>
-    <p>
-      The neural network module supports dense layers and flexible architecture
-      definitions.
-    </p>
-    <ul>
-      <li><code>new NeuralNetwork(input, hidden, output, loss)</code></li>
-      <li><code>forward(input)</code> - Run the network to produce output.</li>
-      <li><code>backward(target)</code> - Compute gradients from loss.</li>
-      <li>
-        <code>ActivationEnum</code> - Activation strategies: Linear, ReLU,
-        Sigmoid, Softmax.
-      </li>
-      <li>
-        <code>SoftmaxCrossEntropy</code> - Fused softmax and cross-entropy loss.
-      </li>
-    </ul>
+<!--    <h2>Neural Network API</h2>-->
+<!--    <p>-->
+<!--      The neural network module supports dense layers and flexible architecture-->
+<!--      definitions.-->
+<!--    </p>-->
+<!--    <ul>-->
+<!--      <li><code>new NeuralNetwork(input, hidden, output, loss)</code></li>-->
+<!--      <li><code>forward(input)</code> - Run the network to produce output.</li>-->
+<!--      <li><code>backward(target)</code> - Compute gradients from loss.</li>-->
+<!--      <li>-->
+<!--        <code>ActivationEnum</code> - Activation strategies: Linear, ReLU,-->
+<!--        Sigmoid, Softmax.-->
+<!--      </li>-->
+<!--      <li>-->
+<!--        <code>SoftmaxCrossEntropy</code> - Fused softmax and cross-entropy loss.-->
+<!--      </li>-->
+<!--    </ul>-->
 
-    <h2>Loss Functions</h2>
-    <ul>
-      <li><strong>MSELoss</strong>: Mean Squared Error for regression.</li>
-      <li>
-        <strong>BCELoss</strong>: Binary Cross Entropy for binary
-        classification.
-      </li>
-      <li><strong>CrossEntropy</strong>: Multi-class cross-entropy.</li>
-      <li><strong>hinge</strong>: Loss used in SVM training.</li>
-    </ul>
+<!--    <h2>Loss Functions</h2>-->
+<!--    <ul>-->
+<!--      <li><strong>MSELoss</strong>: Mean Squared Error for regression.</li>-->
+<!--      <li>-->
+<!--        <strong>BCELoss</strong>: Binary Cross Entropy for binary-->
+<!--        classification.-->
+<!--      </li>-->
+<!--      <li><strong>CrossEntropy</strong>: Multi-class cross-entropy.</li>-->
+<!--      <li><strong>hinge</strong>: Loss used in SVM training.</li>-->
+<!--    </ul>-->
 
-    <h2>Math Utilities</h2>
-    <ul>
-      <li><code>relu(vector)</code></li>
-      <li><code>sigmoid(vector)</code></li>
-      <li><code>softmax(vector)</code></li>
-      <li><code>transpose(matrix)</code></li>
-      <li><code>reshape(array, shape)</code></li>
-      <li><code>standardize(vector)</code></li>
-      <li><code>sum(vector)</code></li>
-      <li><code>arange(start, end)</code></li>
-      <li><code>zeros(size)</code></li>
-      <li><code>ones(size)</code></li>
-      <li><code>gather(array, indices)</code></li>
-      <li><code>scatter(indices, values, shape)</code></li>
-      <li><code>slice(array, start, end)</code></li>
-      <li><code>minmax(vector)</code></li>
-      <li><code>euclidean_distance(a, b)</code></li>
-    </ul>
+<!--    <h2>Math Utilities</h2>-->
+<!--    <ul>-->
+<!--      <li><code>relu(vector)</code></li>-->
+<!--      <li><code>sigmoid(vector)</code></li>-->
+<!--      <li><code>softmax(vector)</code></li>-->
+<!--      <li><code>transpose(matrix)</code></li>-->
+<!--      <li><code>reshape(array, shape)</code></li>-->
+<!--      <li><code>standardize(vector)</code></li>-->
+<!--      <li><code>sum(vector)</code></li>-->
+<!--      <li><code>arange(start, end)</code></li>-->
+<!--      <li><code>zeros(size)</code></li>-->
+<!--      <li><code>ones(size)</code></li>-->
+<!--      <li><code>gather(array, indices)</code></li>-->
+<!--      <li><code>scatter(indices, values, shape)</code></li>-->
+<!--      <li><code>slice(array, start, end)</code></li>-->
+<!--      <li><code>minmax(vector)</code></li>-->
+<!--      <li><code>euclidean_distance(a, b)</code></li>-->
+<!--    </ul>-->
 
-    <h2>Inference</h2>
-    <p>
-      <strong>ModelInferenceEngine</strong> loads serialized model payloads and
-      performs forward inference.
-    </p>
-    <pre><code>import { ModelInferenceEngine } from 'tensorforgejs';
+<!--    <h2>Inference</h2>-->
+<!--    <p>-->
+<!--      <strong>ModelInferenceEngine</strong> loads serialized model payloads and-->
+<!--      performs forward inference.-->
+<!--    </p>-->
+<!--    <pre><code>import { ModelInferenceEngine } from 'tensorforgejs';-->
 
-const engine = new ModelInferenceEngine(modelPayload);
-const output = engine.forward(inputVector);</code></pre>
+<!--const engine = new ModelInferenceEngine(modelPayload);-->
+<!--const output = engine.forward(inputVector);</code></pre>-->
 
-    <a href="index.html">Back to Home</a>
-  </body>
-</html> -->
+<!--    <a href="index.html">Back to Home</a>-->
+<!--  </body>-->
+<!--</html>-->
+
+<!--<!doctype html>-->
+<!--<html lang="en">-->
+<!--  <head>-->
+<!--    <meta charset="UTF-8" />-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+<!--    <title>API Reference - TensorForge Docs</title>-->
+<!--    <link rel="stylesheet" href="style.css" />-->
+<!--  </head>-->
+<!--  <body>-->
+<!--    <div class="app-container">-->
+<!--      <nav class="sidebar">-->
+<!--        <div class="brand">TensorForge<span>JS</span></div>-->
+<!--        <div class="nav-group">-->
+<!--          <div class="nav-title">Getting Started</div>-->
+<!--          <ul class="nav-links">-->
+<!--            <li><a href="index.html">Overview</a></li>-->
+<!--            <li><a href="guide.html">Full Guide</a></li>-->
+<!--            <li><a href="examples.html">Examples</a></li>-->
+<!--          </ul>-->
+<!--        </div>-->
+<!--        <div class="nav-group">-->
+<!--          <div class="nav-title">Architecture</div>-->
+<!--          <ul class="nav-links">-->
+<!--            <li><a href="architecture.html">Internal Design</a></li>-->
+<!--            <li><a href="core.html">Core Structures</a></li>-->
+<!--            <li><a href="math.html">Math Operations</a></li>-->
+<!--            <li><a href="models.html">Supported Models</a></li>-->
+<!--          </ul>-->
+<!--        </div>-->
+<!--        <div class="nav-group">-->
+<!--          <div class="nav-title">Reference</div>-->
+<!--          <ul class="nav-links">-->
+<!--            <li><a href="api.html" class="active">API Reference</a></li>-->
+<!--            <li><a href="usage.html">Minimal Usage</a></li>-->
+<!--          </ul>-->
+<!--        </div>-->
+<!--      </nav>-->
+
+<!--      <main class="main-content">-->
+<!--        <h1>API Reference Documentation</h1>-->
+
+<!--        <h2>Top-Level Exports</h2>-->
+<!--        <ul>-->
+<!--          <li><strong>Core</strong>: <code>Matrix</code>, <code>Vector</code>, <code>Tensor</code></li>-->
+<!--          <li><strong>Models</strong>: <code>LinearRegression</code>, <code>LogisticRegression</code>, <code>NaiveBayes</code>, <code>DiscretePerceptron</code>, <code>PolynomialRegression</code>, <code>KNN</code>, <code>WeightedKNN</code>, <code>KMeans</code>, <code>LinearSVM</code>, <code>PolynomialKernelSVM</code>, <code>SigmoidKernelSVM</code></li>-->
+<!--          <li><strong>Neural</strong>: <code>NeuralNetwork</code>, <code>DenseLayer</code>, <code>SoftmaxCrossEntropy</code></li>-->
+<!--          <li><strong>API</strong>: <code>ModelInferenceEngine</code></li>-->
+<!--          <li><strong>Loss</strong>: <code>MSELoss</code>, <code>BCELoss</code>, <code>CrossEntropy</code>, <code>hinge</code></li>-->
+<!--        </ul>-->
+
+<!--        <h2>Core Memory Structures</h2>-->
+
+<!--        <h3>Vector</h3>-->
+<!--        <p>1D optimized numeric array backed by low-level flat typed buffers.</p>-->
+<!--        <ul class="api-list">-->
+<!--          <li class="api-item"><code>new Vector(size)</code> - Initialize clear buffer.</li>-->
+<!--          <li class="api-item"><code>set(index, value)</code> / <code>get(index)</code> - Explicit buffer manipulation.</li>-->
+<!--          <li class="api-item"><code>sum()</code> / <code>avg()</code> - Analytical scalar reducers.</li>-->
+<!--          <li class="api-item"><code>static from(array)</code> - Instantiates vector out of raw JavaScript arrays.</li>-->
+<!--        </ul>-->
+
+<!--        <h3>Matrix</h3>-->
+<!--        <p>2D structured layout utilizing explicit row-major performance mapping layouts.</p>-->
+<!--        <ul class="api-list">-->
+<!--          <li class="api-item"><code>new Matrix(rows, columns)</code> - Allocates 2D structure.</li>-->
+<!--          <li class="api-item"><code>matrixMulVector(matrix, vector)</code> - High performance standard dot engine multiplication.</li>-->
+<!--          <li class="api-item"><code>outerProduct(vectorA, vectorB)</code> - Builds a full 2D output layout.</li>-->
+<!--        </ul>-->
+
+<!--        <h2>Neural Engine Pipeline</h2>-->
+<!--        <p>Supports flexible dense multi-layer topological allocations and optimization routines.</p>-->
+<!--        <pre><code>import { ModelInferenceEngine } from 'tensorforgejs';-->
+
+<!--const engine = new ModelInferenceEngine(modelPayload);-->
+<!--const output = engine.forward(inputVector);</code></pre>-->
+<!--      </main>-->
+<!--    </div>-->
+<!--  </body>-->
+<!--</html>-->
+
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>API Reference - TensorForge Docs</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="app-container">
-      <nav class="sidebar">
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app-container">
+    <nav class="sidebar">
         <div class="brand">TensorForge<span>JS</span></div>
         <div class="nav-group">
-          <div class="nav-title">Getting Started</div>
-          <ul class="nav-links">
-            <li><a href="index.html">Overview</a></li>
-            <li><a href="guide.html">Full Guide</a></li>
-            <li><a href="examples.html">Examples</a></li>
-          </ul>
+            <div class="nav-title">Getting Started</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Overview</a></li>
+                <li><a href="guide.html">Full Guide</a></li>
+                <li><a href="examples.html">Examples</a></li>
+            </ul>
         </div>
         <div class="nav-group">
-          <div class="nav-title">Architecture</div>
-          <ul class="nav-links">
-            <li><a href="architecture.html">Internal Design</a></li>
-            <li><a href="core.html">Core Structures</a></li>
-            <li><a href="math.html">Math Operations</a></li>
-            <li><a href="models.html">Supported Models</a></li>
-          </ul>
+            <div class="nav-title">Architecture</div>
+            <ul class="nav-links">
+                <li><a href="architecture.html">Internal Design</a></li>
+                <li><a href="core.html">Core Structures</a></li>
+                <li><a href="math.html">Math Operations</a></li>
+                <li><a href="models.html">Supported Models</a></li>
+            </ul>
         </div>
         <div class="nav-group">
-          <div class="nav-title">Reference</div>
-          <ul class="nav-links">
-            <li><a href="api.html" class="active">API Reference</a></li>
-            <li><a href="usage.html">Minimal Usage</a></li>
-          </ul>
+            <div class="nav-title">Reference</div>
+            <ul class="nav-links">
+                <li><a href="api.html" class="active">API Reference</a></li>
+                <li><a href="usage.html">Minimal Usage</a></li>
+            </ul>
         </div>
-      </nav>
+    </nav>
 
-      <main class="main-content">
+    <main class="main-content">
         <h1>API Reference Documentation</h1>
 
         <h2>Top-Level Exports</h2>
         <ul>
-          <li><strong>Core</strong>: <code>Matrix</code>, <code>Vector</code>, <code>Tensor</code></li>
-          <li><strong>Models</strong>: <code>LinearRegression</code>, <code>LogisticRegression</code>, <code>NaiveBayes</code>, <code>DiscretePerceptron</code>, <code>PolynomialRegression</code>, <code>KNN</code>, <code>WeightedKNN</code>, <code>KMeans</code>, <code>LinearSVM</code>, <code>PolynomialKernelSVM</code>, <code>SigmoidKernelSVM</code></li>
-          <li><strong>Neural</strong>: <code>NeuralNetwork</code>, <code>DenseLayer</code>, <code>SoftmaxCrossEntropy</code></li>
-          <li><strong>API</strong>: <code>ModelInferenceEngine</code></li>
-          <li><strong>Loss</strong>: <code>MSELoss</code>, <code>BCELoss</code>, <code>CrossEntropy</code>, <code>hinge</code></li>
+            <li><strong>Core</strong>: <code>Matrix</code>, <code>Vector</code>, <code>Tensor</code></li>
+            <li><strong>Models</strong>: <code>LinearRegression</code>, <code>LogisticRegression</code>, <code>NaiveBayes</code>,
+                <code>DiscretePerceptron</code>, <code>PolynomialRegression</code>, <code>KNN</code>,
+                <code>WeightedKNN</code>, <code>KMeans</code>, <code>LinearSVM</code>, <code>PolynomialKernelSVM</code>,
+                <code>SigmoidKernelSVM</code></li>
+            <li><strong>Neural</strong>: <code>NeuralNetwork</code>, <code>DenseLayer</code>,
+                <code>SoftmaxCrossEntropy</code></li>
+            <li><strong>API</strong>: <code>ModelInferenceEngine</code></li>
+            <li><strong>Loss</strong>: <code>MSELoss</code>, <code>BCELoss</code>, <code>CrossEntropy</code>, <code>hinge</code>
+            </li>
+            <li><strong>Math</strong>: <code>relu</code>, <code>sigmoid</code>, <code>softmax</code>,
+                <code>transpose</code>, <code>reshape</code>, <code>standardize</code>, <code>sum</code>,
+                <code>arange</code>, <code>zeros</code>, <code>ones</code>, <code>gather</code>, <code>scatter</code>,
+                <code>slice</code>, <code>minmax</code>, <code>euclidean_distance</code></li>
         </ul>
 
         <h2>Core Memory Structures</h2>
-        
+
         <h3>Vector</h3>
         <p>1D optimized numeric array backed by low-level flat typed buffers.</p>
         <ul class="api-list">
-          <li class="api-item"><code>new Vector(size)</code> - Initialize clear buffer.</li>
-          <li class="api-item"><code>set(index, value)</code> / <code>get(index)</code> - Explicit buffer manipulation.</li>
-          <li class="api-item"><code>sum()</code> / <code>avg()</code> - Analytical scalar reducers.</li>
-          <li class="api-item"><code>static from(array)</code> - Instantiates vector out of raw JavaScript arrays.</li>
+            <li class="api-item"><code>new Vector(size)</code> - Initialize clear buffer.</li>
+            <li class="api-item"><code>set(index, value)</code> / <code>get(index)</code> - Explicit buffer
+                manipulation.
+            </li>
+            <li class="api-item"><code>sum()</code> / <code>avg()</code> - Analytical scalar reducers.</li>
+            <li class="api-item"><code>toArray()</code> - Returns JavaScript array instance.</li>
+            <li class="api-item"><code>print(label?)</code> - Logs output buffer to console.</li>
+            <li class="api-item"><code>static from(array)</code> - Instantiates vector out of raw JavaScript arrays.
+            </li>
+            <li class="api-item"><code>static zeros(size)</code> - Generates a zeroed initialization container.</li>
+            <li class="api-item"><code>static random(size)</code> - Fills randomized parameters inside structure.</li>
         </ul>
 
         <h3>Matrix</h3>
         <p>2D structured layout utilizing explicit row-major performance mapping layouts.</p>
         <ul class="api-list">
-          <li class="api-item"><code>new Matrix(rows, columns)</code> - Allocates 2D structure.</li>
-          <li class="api-item"><code>matrixMulVector(matrix, vector)</code> - High performance standard dot engine multiplication.</li>
-          <li class="api-item"><code>outerProduct(vectorA, vectorB)</code> - Builds a full 2D output layout.</li>
+            <li class="api-item"><code>new Matrix(rows, columns)</code> - Allocates 2D structure.</li>
+            <li class="api-item"><code>set(r, c, value)</code> / <code>get(r, c)</code> - Coordinates configuration
+                index hooks.
+            </li>
+            <li class="api-item"><code>getRow(r)</code> / <code>setRow(r, Float64Array)</code> - Direct contiguous byte
+                slice updates.
+            </li>
+            <li class="api-item"><code>print(label?)</code> - Visualizes internal grid layout.</li>
+            <li class="api-item"><code>static zeros(rows, columns)</code> - Allocates flat cleared matrix frame.</li>
+            <li class="api-item"><code>static matrixMulVector(matrix, vector)</code> - High performance standard dot
+                engine multiplication.
+            </li>
+            <li class="api-item"><code>static outerProduct(vectorA, vectorB)</code> - Builds a full 2D output layout.
+            </li>
+            <li class="api-item"><code>static add(matrixA, matrixB)</code> - Native operational sum processor.</li>
+        </ul>
+
+        <h3>Tensor</h3>
+        <p>Flexible N-dimensional numeric container.</p>
+        <ul class="api-list">
+            <li class="api-item"><code>new Tensor(data)</code> - Wraps multidimensional raw array arrays.</li>
+            <li class="api-item"><code>clone()</code> - Deep copies execution graph links and variables.</li>
+            <li class="api-item"><code>static zeros(size)</code> - Instantiates bounded zero tensor space.</li>
+        </ul>
+
+        <h2>Models</h2>
+        <ul class="api-list">
+            <li class="api-item"><strong>LinearRegression</strong> - Linear predictive model with forward and backward
+                methods.
+            </li>
+            <li class="api-item"><strong>LogisticRegression</strong> - Binary classifier with sigmoid activation.</li>
+            <li class="api-item"><strong>NaiveBayes</strong> - Probabilistic classification model.</li>
+            <li class="api-item"><strong>DiscretePerceptron</strong> - Simple binary classifier with step activation.
+            </li>
+            <li class="api-item"><strong>PolynomialRegression</strong> - Polynomial feature regression model.</li>
+            <li class="api-item"><strong>KNN</strong> - K-nearest neighbors classification.</li>
+            <li class="api-item"><strong>WeightedKNN</strong> - Weighted KNN variant.</li>
+            <li class="api-item"><strong>KMeans</strong> - Unsupervised clustering algorithm.</li>
+            <li class="api-item"><strong>LinearSVM</strong> - Support Vector Machine with linear kernel.</li>
+            <li class="api-item"><strong>PolynomialKernelSVM</strong> - SVM with polynomial kernel.</li>
+            <li class="api-item"><strong>SigmoidKernelSVM</strong> - SVM with sigmoid kernel.</li>
         </ul>
 
         <h2>Neural Engine Pipeline</h2>
         <p>Supports flexible dense multi-layer topological allocations and optimization routines.</p>
+        <ul class="api-list">
+            <li class="api-item"><code>new NeuralNetwork(input, hidden, output, loss)</code> - Constructs network
+                parameters.
+            </li>
+            <li class="api-item"><code>forward(input)</code> - Run the network to produce output.</li>
+            <li class="api-item"><code>backward(target)</code> - Compute gradients from loss.</li>
+            <li class="api-item"><code>ActivationEnum</code> - Activation strategies: Linear, ReLU, Sigmoid, Softmax.
+            </li>
+            <li class="api-item"><code>SoftmaxCrossEntropy</code> - Fused softmax and cross-entropy loss.</li>
+        </ul>
+
+        <h2>Loss Functions</h2>
+        <ul class="api-list">
+            <li class="api-item"><strong>MSELoss</strong> - Mean Squared Error for regression.</li>
+            <li class="api-item"><strong>BCELoss</strong> - Binary Cross Entropy for binary classification.</li>
+            <li class="api-item"><strong>CrossEntropy</strong> - Multi-class cross-entropy.</li>
+            <li class="api-item"><strong>hinge</strong> - Loss used in SVM training.</li>
+        </ul>
+
+        <h2>Math Utilities</h2>
+        <ul class="api-list">
+            <li class="api-item"><code>relu(vector)</code> / <code>sigmoid(vector)</code> / <code>softmax(vector)</code>
+                - Array execution activations.
+            </li>
+            <li class="api-item"><code>transpose(matrix)</code> / <code>reshape(array, shape)</code> - Layout
+                dimensional shifting utilities.
+            </li>
+            <li class="api-item"><code>standardize(vector)</code> / <code>minmax(vector)</code> - Feature scaling
+                operations.
+            </li>
+            <li class="api-item"><code>sum(vector)</code> / <code>euclidean_distance(a, b)</code> - Reduction tracking
+                algorithms.
+            </li>
+            <li class="api-item"><code>arange(start, end)</code> / <code>zeros(size)</code> / <code>ones(size)</code> -
+                Linear sequence allocation pools.
+            </li>
+            <li class="api-item"><code>gather(array, indices)</code> / <code>scatter(indices, values, shape)</code> /
+                <code>slice(array, start, end)</code> - Graph data mutations.
+            </li>
+        </ul>
+
+        <h2>Inference Engine</h2>
+        <p><strong>ModelInferenceEngine</strong> loads serialized model payloads and performs forward inference.</p>
         <pre><code>import { ModelInferenceEngine } from 'tensorforgejs';
 
 const engine = new ModelInferenceEngine(modelPayload);
 const output = engine.forward(inputVector);</code></pre>
-      </main>
-    </div>
-  </body>
+    </main>
+</div>
+</body>
 </html>
+
