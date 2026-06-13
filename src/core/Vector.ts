@@ -117,10 +117,12 @@ export class Vector {
     }
 
     toTensor(): Tensor {
-        const tensor = new Tensor([1, this.length])
-        for (let i = 0; i < this.data.length; i++) {
-            tensor.set(i, this.data[i]);
+        const tensor = new Tensor([1, this.length]);
+
+        for (let i = 0; i < this.length; i++) {
+            tensor.set(this.data[i], 0, i);
         }
-        return tensor
+
+        return tensor;
     }
 }

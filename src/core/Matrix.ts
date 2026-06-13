@@ -240,10 +240,16 @@ export class Matrix {
     }
 
     toTensor(): Tensor {
-        const tensor = new Tensor([this.rows, this.columns])
-        for (let i = 0; i < this.data.length; i++) {
-            tensor.set(i, this.data[i]);
+        const tensor = new Tensor([this.rows, this.columns]);
+
+        let idx = 0;
+
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.columns; c++) {
+                tensor.set(this.get(r, c), r, c);
+            }
         }
+
         return tensor;
     }
 
