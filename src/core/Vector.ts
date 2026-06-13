@@ -86,10 +86,26 @@ export class Vector {
         return new Vector(size);
     }
 
-    addVectors(v1: Vector, v2: Vector): Vector {
+    static addVectors(v1: Vector, v2: Vector): Vector {
         const res = new Vector(v1.length);
         for (let i = 0; i < v1.length; i++) {
             res.set(i, v1.get(i) + v2.get(i));
+        }
+        return res;
+    }
+
+    static subVectors(left: Vector, right: Vector) {
+        const res = new Vector(left.length);
+        for (let i = 0; i < left.length; i++) {
+            res.set(i, left.get(i) - right.get(i));
+        }
+        return res;
+    }
+
+    static multiplyScalar(vec: Vector, scalar: number) {
+        const res = new Vector(vec.length);
+        for (let i = 0; i < vec.length; i++) {
+            res.set(i, vec.get(i) * scalar);
         }
         return res;
     }
