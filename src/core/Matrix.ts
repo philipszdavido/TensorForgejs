@@ -107,6 +107,25 @@ export class Matrix {
 
     }
 
+    static sub(left: Matrix, right: Matrix) {
+
+        // @TODO: test this
+        assert(left.columns === right.columns, `Shape mismatch: Matrix columns (${left.columns}) must equal Matrix columns (${left.columns})`);
+
+        const result = new Matrix(right.rows, right.columns);
+
+        for (let r = 0; r < left.rows; r++) {
+            for (let c = 0; c < left.columns; c++) {
+                const rVal = right.get(r, c);
+
+                result.set(r, c, left.get(r, c) - rVal);
+            }
+        }
+
+        return result;
+
+    }
+
     // @TODO: test this
     // [[0,1,2,3,4,5]]
     static from(arr: Array<Array<number>>) {
@@ -190,6 +209,18 @@ export class Matrix {
             const rowData = Array.from(this.getRow(r));
             result.push(rowData);
         }
+        return result;
+    }
+
+    static multiplyScalar(matrix: Matrix, scalar: number): Matrix {
+        const result = new Matrix(matrix.rows, matrix.columns);
+
+        for (let r = 0; r < matrix.rows; r++) {
+            for (let c = 0; c < matrix.columns; c++) {
+                result.set(r, c, matrix.get(r, c) * scalar);
+            }
+        }
+
         return result;
     }
 
