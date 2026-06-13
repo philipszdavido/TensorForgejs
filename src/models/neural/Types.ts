@@ -1,19 +1,29 @@
 import {Vector} from "../../core/Vector";
 import {Matrix} from "../../core/Matrix";
-import {LinearActivation, ReLUActivation, SigmoidActivation, SoftmaxPassThrough} from "./Activation";
+import {
+    LeakyReLUActivation,
+    LinearActivation,
+    ReLUActivation,
+    SigmoidActivation,
+    SoftmaxPassThrough, TanhActivation
+} from "./Activation";
 
 export enum ActivationEnum {
     relu,
     softmax,
     sigmoid,
     linear,
+    leakyRelu,
+    tanh,
 }
 
 export const ActivationUse = {
     [ActivationEnum.relu]: ReLUActivation,
     [ActivationEnum.softmax]: SoftmaxPassThrough,
     [ActivationEnum.sigmoid]: SigmoidActivation,
-    [ActivationEnum.linear]: LinearActivation
+    [ActivationEnum.linear]: LinearActivation,
+    [ActivationEnum.leakyRelu]: LeakyReLUActivation,
+    [ActivationEnum.tanh]: TanhActivation,
 }
 
 export type Activation = {
