@@ -1,5 +1,6 @@
 import {Vector} from "./Vector";
 import assert from "../assert/assert";
+import {Tensor} from "./Tensor";
 
 // 2d array
 export class Matrix {
@@ -236,6 +237,14 @@ export class Matrix {
 
         return c;
 
+    }
+
+    toTensor(): Tensor {
+        const tensor = new Tensor([this.rows, this.columns])
+        for (let i = 0; i < this.data.length; i++) {
+            tensor.set(i, this.data[i]);
+        }
+        return tensor;
     }
 
 }

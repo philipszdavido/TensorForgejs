@@ -1,5 +1,6 @@
 import assert from "../assert/assert";
 import {elementwise_multiplication} from "../math/vector/sum";
+import {Tensor} from "./Tensor";
 
 // a 1D array
 export class Vector {
@@ -113,5 +114,13 @@ export class Vector {
 
     static mulVectors(vec_a: Vector, vec_b: Vector) {
         return Vector.from(elementwise_multiplication(vec_a, vec_b))
+    }
+
+    toTensor(): Tensor {
+        const tensor = new Tensor([1, this.length])
+        for (let i = 0; i < this.data.length; i++) {
+            tensor.set(i, this.data[i]);
+        }
+        return tensor
     }
 }
