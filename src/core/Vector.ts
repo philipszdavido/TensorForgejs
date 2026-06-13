@@ -1,4 +1,5 @@
 import assert from "../assert/assert";
+import {elementwise_multiplication} from "../math/vector/sum";
 
 // a 1D array
 export class Vector {
@@ -108,5 +109,9 @@ export class Vector {
             res.set(i, vec.get(i) * scalar);
         }
         return res;
+    }
+
+    static mulVectors(vec_a: Vector, vec_b: Vector) {
+        return Vector.from(elementwise_multiplication(vec_a, vec_b))
     }
 }

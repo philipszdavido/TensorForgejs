@@ -39,7 +39,7 @@ export default class DenseLayer {
 
         const z = Matrix.matrixMulVector(this.weight, a);
 
-        const zWithBias = Vector.from(elementwise_addition(z, this.bias));
+        const zWithBias = Vector.addVectors(z, this.bias);
 
         this.z = zWithBias;
         this.input = a;
@@ -54,7 +54,7 @@ export default class DenseLayer {
 
     backward(delta: Vector) {
 
-        this.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), this.dB));
+        this.dB = Vector.addVectors(Vector.from(delta.toArray()), this.dB);
 
         this.dW = Matrix.add(this.dW, Matrix.outerProduct(delta, this!.input!));
 

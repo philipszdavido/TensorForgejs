@@ -97,16 +97,14 @@ export class NeuralNetwork {
             const Predicted = output.a!;
             const lossGrad = (this.loss as LossFunction).gradient(Y, Predicted);
 
-            delta = Vector.from(
-                elementwise_multiplication(lossGrad, this.getActivation(output.activation).derivative(output.z!, output.a!))
-            );
+            delta = Vector.mulVectors(lossGrad, this.getActivation(output.activation).derivative(output.z!, output.a!))
 
         }
 
         for (let i = this.layers.length - 1; i >= 0; i--) {
             const layer = this.layers[i];
 
-            layer.dB = Vector.from(elementwise_addition(Vector.from(delta.toArray()), layer.dB));
+            layer.dB = Vector.addVectors(Vector.from(delta.toArray()), layer.dB);
 
             layer.dW = Matrix.add(layer.dW, Matrix.outerProduct(delta, layer!.input!));
 
@@ -115,12 +113,10 @@ export class NeuralNetwork {
                 const prevLayer = this.layers[i - 1];
                 const WT = transpose(layer.weight);
 
-                delta = Vector.from(
-                    elementwise_multiplication(
-                        Matrix.matrixMulVector(WT, delta),
-                        this.getActivation(prevLayer.activation).derivative(prevLayer.a!, prevLayer.z!)
-                    ),
-                );
+                delta = Vector.mulVectors(
+                    Matrix.matrixMulVector(WT, delta),
+                    this.getActivation(prevLayer.activation).derivative(prevLayer.a!, prevLayer.z!)
+                )
 
             }
         }

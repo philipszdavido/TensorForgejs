@@ -40,9 +40,7 @@ export class NeuralNetworkDense {
             const Predicted = output.a!;
             const lossGrad = (this.loss as LossFunction).gradient(Y, Predicted);
 
-            delta = Vector.from(
-                elementwise_multiplication(lossGrad, output.activation.derivative(output.z!, output.a!))
-            );
+            delta = Vector.mulVectors(lossGrad, output.activation.derivative(output.z!, output.a!));
 
         }
 
@@ -52,12 +50,10 @@ export class NeuralNetworkDense {
             const dA = denseLayer.backward(delta);
 
             if (i > 0) {
-                delta = Vector.from(
-                    elementwise_multiplication(
-                        dA,
-                        prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
-                    ),
-                );
+                delta = Vector.mulVectors(
+                    dA,
+                    prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
+                )
             }
         }
 
