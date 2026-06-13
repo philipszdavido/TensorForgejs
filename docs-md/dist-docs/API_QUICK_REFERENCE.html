@@ -1,0 +1,290 @@
+<h1>API Quick Reference</h1>
+<p>Quick lookup guide for TensorForgejs API.</p>
+<h2>Core Data Structures</h2>
+<h3>Vector</h3>
+<pre><code class="language-typescript">// Create
+new Vector(size);
+Vector.from([1, 2, 3]);
+Vector.zeros(10);
+Vector.random(10);
+
+// Operations
+v.set(index, value);
+v.get(index);
+v.length;
+v.sum();
+v.avg();
+v.toArray();
+v.print();
+</code></pre>
+<h3>Matrix</h3>
+<pre><code class="language-typescript">// Create
+new Matrix(rows, cols);
+Matrix.zeros(rows, cols);
+
+// Operations
+m.set(r, c, value);
+m.get(r, c);
+m.getRow(r);
+m.setRow(r, row);
+(m.rows, m.columns);
+m.print();
+
+// Static methods
+Matrix.matrixMulVector(m, v);
+Matrix.outerProduct(v1, v2);
+Matrix.add(m1, m2);
+</code></pre>
+<h3>Tensor</h3>
+<pre><code class="language-typescript">new Tensor([1, 2, 3]);
+Tensor.zeros(size);
+t.clone();
+t.data;
+</code></pre>
+<h2>Supervised Learning Models</h2>
+<h3>Linear Regression</h3>
+<pre><code class="language-typescript">import { LinearRegression } from &#39;tensorforgejs&#39;;
+
+const model = new LinearRegression(inputSize, bias);
+model.predict(x)           // Prediction
+model.forward(x)           // Forward pass
+model.backward(x, y, yHat) // Backward pass
+model.setWeights([...])
+model.setBias(0.5)
+</code></pre>
+<h3>Logistic Regression</h3>
+<pre><code class="language-typescript">import { LogisticRegression } from &quot;tensorforgejs&quot;;
+
+const model = new LogisticRegression(inputSize);
+model.predict(x); // Returns probability [0, 1]
+model.forward(x);
+model.backward(x, y, yHat);
+</code></pre>
+<h3>K-Nearest Neighbors</h3>
+<pre><code class="language-typescript">import { KNN } from &quot;tensorforgejs&quot;;
+
+const samples = [
+  { data: [1, 2], label: &quot;A&quot; },
+  { data: [8, 9], label: &quot;B&quot; },
+];
+
+const model = new KNN(samples, k);
+model.predict(x); // Returns label
+</code></pre>
+<h3>SVM Models</h3>
+<pre><code class="language-typescript">import {
+  LinearSVM,
+  PolynomialKernelSVM,
+  SigmoidKernelSVM,
+} from &quot;tensorforgejs&quot;;
+
+// Linear SVM
+const linear = new LinearSVM(inputSize);
+
+// Polynomial Kernel
+const poly = new PolynomialKernelSVM(inputSize, degree);
+
+// Sigmoid Kernel
+const sigmoid = new SigmoidKernelSVM(inputSize);
+
+// All SVM models support
+model.forward(x);
+model.backward(x, y, yHat);
+</code></pre>
+<h3>Discrete Perceptron</h3>
+<pre><code class="language-typescript">import { DiscretePerceptron } from &quot;tensorforgejs&quot;;
+
+const model = new DiscretePerceptron(inputSize);
+model.forward(x); // Returns 0 or 1
+model.backward(x, y, yHat);
+</code></pre>
+<h3>Naive Bayes</h3>
+<pre><code class="language-typescript">import { NaiveBayes } from &quot;tensorforgejs&quot;;
+
+const model = new NaiveBayes();
+model.fit(features, labels);
+model.predict(x);
+</code></pre>
+<h3>Polynomial Regression</h3>
+<pre><code class="language-typescript">import { PolynomialRegression } from &quot;tensorforgejs&quot;;
+
+const model = new PolynomialRegression(inputSize, degree);
+model.predict(x);
+</code></pre>
+<h2>Unsupervised Learning</h2>
+<h3>K-Means</h3>
+<pre><code class="language-typescript">import { KMeans } from &quot;tensorforgejs&quot;;
+
+const model = new KMeans(k, maxIterations);
+model.fit(features);
+model.predict(x); // Returns cluster ID
+</code></pre>
+<h2>Neural Networks</h2>
+<h3>NeuralNetwork</h3>
+<pre><code class="language-typescript">import { NeuralNetwork, ActivationEnum, MSELoss } from &quot;tensorforgejs&quot;;
+
+const model = new NeuralNetwork(
+  { size: 784 }, // input
+  [
+    // hidden layers
+    { size: 128, activation: ActivationEnum.ReLU },
+    { size: 64, activation: ActivationEnum.ReLU },
+  ],
+  { size: 10, activation: ActivationEnum.Softmax }, // output
+  new MSELoss(),
+);
+
+model.forward(x); // Forward pass
+model.backward(y); // Backward pass
+model.layers; // Access layers
+</code></pre>
+<h3>Activation Functions</h3>
+<pre><code class="language-typescript">enum ActivationEnum {
+  Linear = &quot;linear&quot;,
+  ReLU = &quot;relu&quot;,
+  Sigmoid = &quot;sigmoid&quot;,
+  Softmax = &quot;softmax&quot;,
+}
+</code></pre>
+<h2>Loss Functions</h2>
+<h3>MSE Loss</h3>
+<pre><code class="language-typescript">import { MSELoss } from &quot;tensorforgejs&quot;;
+
+const loss = new MSELoss();
+loss.compute(yTrue, yPred);
+loss.gradient(yTrue, yPred);
+</code></pre>
+<h3>Cross Entropy Loss</h3>
+<pre><code class="language-typescript">import { CrossEntropyLoss } from &quot;tensorforgejs&quot;;
+
+const loss = new CrossEntropyLoss();
+</code></pre>
+<h3>Softmax Cross Entropy</h3>
+<pre><code class="language-typescript">import { SoftmaxCrossEntropy } from &quot;tensorforgejs&quot;;
+
+const loss = new SoftmaxCrossEntropy();
+loss.forward(logits);
+loss.fusedGradient(yTrue);
+</code></pre>
+<h2>Math Operations</h2>
+<h3>Activation Functions</h3>
+<pre><code class="language-typescript">import { relu, sigmoid, softmax } from &quot;tensorforgejs&quot;;
+
+relu(vector);
+sigmoid(vector);
+softmax(vector);
+</code></pre>
+<h3>Matrix Operations</h3>
+<pre><code class="language-typescript">import { transpose, matmul, reshape } from &quot;tensorforgejs&quot;;
+
+transpose(matrix);
+matmul(m1, m2);
+reshape(vector, shape);
+</code></pre>
+<h3>Utilities</h3>
+<pre><code class="language-typescript">import {
+  sum,
+  arange,
+  zeros,
+  ones,
+  gather,
+  scatter,
+  slice,
+  euclidean_distance,
+  minmax,
+  standardize,
+} from &quot;tensorforgejs&quot;;
+
+sum(vector);
+arange(start, end);
+zeros(size);
+ones(size);
+gather(vector, indices);
+scatter(indices, values, shape);
+slice(vector, start, end);
+euclidean_distance(a, b);
+minmax(vector);
+standardize(vector);
+</code></pre>
+<h2>Model Inference</h2>
+<h3>ModelInferenceEngine</h3>
+<pre><code class="language-typescript">import { ModelInferenceEngine } from &#39;tensorforgejs&#39;;
+
+const modelData = {
+  weights: [...],
+  biases: [...],
+  architecture: {...}
+};
+
+const engine = new ModelInferenceEngine(modelData);
+engine.forward(input)  // Returns prediction
+</code></pre>
+<h2>Common Training Pattern</h2>
+<pre><code class="language-typescript">const model = new LinearRegression(inputSize);
+const learningRate = 0.01;
+const epochs = 100;
+
+for (let epoch = 0; epoch &lt; epochs; epoch++) {
+  for (const { x, y } of trainingData) {
+    // Forward
+    const yHat = model.predict(x);
+
+    // Backward
+    model.backward(x, y, yHat);
+
+    // Update weights
+    for (let i = 0; i &lt; model.weights.length; i++) {
+      model.weights[i] -= learningRate * model.gradWeights[i];
+    }
+    model.bias -= learningRate * model.gradBias;
+  }
+}
+</code></pre>
+<h2>Import Patterns</h2>
+<pre><code class="language-typescript">// Import everything
+import TensorForge from &quot;tensorforgejs&quot;;
+const { Core, Models, ModelInferenceEngine } = TensorForge;
+
+// Import specific modules
+import { Vector, Matrix, Tensor } from &quot;tensorforgejs&quot;;
+import { LinearRegression, LogisticRegression, KNN } from &quot;tensorforgejs&quot;;
+
+// Import utilities
+import { relu, sigmoid, softmax } from &quot;tensorforgejs&quot;;
+import { MSELoss, CrossEntropyLoss } from &quot;tensorforgejs&quot;;
+</code></pre>
+<h2>Property Access</h2>
+<pre><code class="language-typescript">// Vector properties
+v.length; // Size of vector
+v.data; // Underlying Float64Array
+
+// Matrix properties
+m.rows; // Number of rows
+m.columns; // Number of columns
+m.data; // Underlying Float64Array
+
+// Model properties (all supervised models)
+model.weights; // Weight parameters
+model.bias; // Bias parameter
+model.gradWeights; // Weight gradients
+model.gradBias; // Bias gradient
+
+// NeuralNetwork properties
+model.layers; // All layers
+model.input; // Input configuration
+model.hidden; // Hidden layers config
+model.output; // Output layer config
+model.loss; // Loss function
+</code></pre>
+<h2>Error Handling</h2>
+<pre><code class="language-typescript">// Data validation
+import assert from &quot;tensorforgejs&quot;;
+
+assert(samples.length &gt; 0, &quot;Samples cannot be empty&quot;);
+assert(m.columns === v.length, `Shape mismatch: ${m.columns} !== ${v.length}`);
+</code></pre>
+<hr />
+<p>
+  For detailed documentation, see
+  <a href="DOCUMENTATION.md">DOCUMENTATION.md</a>
+</p>
