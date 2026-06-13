@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -34,5 +34,65 @@ const prediction = knn.predict([2, 3]);
 console.log('KNN Prediction:', prediction);
   </code></pre>
     <a href="index.html">Back to Home</a>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usage Example - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="brand">TensorForge<span>JS</span></div>
+        <div class="nav-group">
+          <div class="nav-title">Getting Started</div>
+          <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="guide.html">Full Guide</a></li>
+            <li><a href="examples.html">Examples</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Architecture</div>
+          <ul class="nav-links">
+            <li><a href="architecture.html">Internal Design</a></li>
+            <li><a href="core.html">Core Structures</a></li>
+            <li><a href="math.html">Math Operations</a></li>
+            <li><a href="models.html">Supported Models</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Reference</div>
+          <ul class="nav-links">
+            <li><a href="api.html">API Reference</a></li>
+            <li><a href="usage.html" class="active">Minimal Usage</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <h1>Minimal Usage Blueprint</h1>
+        <p>A quick demonstration of memory initialization and simple evaluation:</p>
+
+        <pre><code>import { Matrix, Vector } from './src/core';
+import KNN from './src/models/KNN';
+
+const v = new Vector(3);
+v.set(0, 1); v.set(1, 2); v.set(2, 3);
+
+const m = Matrix.from([
+  [1, 2, 3],
+  [4, 5, 6],
+]);
+
+const knn = new KNN([[1, 2], [2, 3]]);
+console.log('Prediction:', knn.predict([2, 3]));</code></pre>
+      </main>
+    </div>
   </body>
 </html>

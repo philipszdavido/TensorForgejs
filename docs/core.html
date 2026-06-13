@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -29,5 +29,66 @@
       <li><strong>Tensor</strong>: ND array, supports zeros, clone, etc.</li>
     </ul>
     <a href="index.html">Back to Home</a>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Core Structures - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="brand">TensorForge<span>JS</span></div>
+        <div class="nav-group">
+          <div class="nav-title">Getting Started</div>
+          <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="guide.html">Full Guide</a></li>
+            <li><a href="examples.html">Examples</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Architecture</div>
+          <ul class="nav-links">
+            <li><a href="architecture.html">Internal Design</a></li>
+            <li><a href="core.html" class="active">Core Structures</a></li>
+            <li><a href="math.html">Math Operations</a></li>
+            <li><a href="models.html">Supported Models</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Reference</div>
+          <ul class="nav-links">
+            <li><a href="api.html">API Reference</a></li>
+            <li><a href="usage.html">Minimal Usage</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <h1>Core Structural Layers</h1>
+        <p>TensorForge structures memory allocations cleanly into layout primitives:</p>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Vector</h3>
+            <p>1D contiguous data buffers managing localized vector tasks natively.</p>
+          </div>
+          <div class="card">
+            <h3>Matrix</h3>
+            <p>2D structured arrays managing explicit dimensions for operations.</p>
+          </div>
+          <div class="card">
+            <h3>Tensor</h3>
+            <p>N-Dimensional complex data maps with localized graph tracking indicators.</p>
+          </div>
+        </div>
+      </main>
+    </div>
   </body>
 </html>

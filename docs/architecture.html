@@ -1,0 +1,181 @@
+<!-- <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Architecture</h1>
+    <p>
+      This page describes the internal architecture of TensorForge and how the
+      project is organized.
+    </p>
+
+    <h2>Library Structure</h2>
+    <ul>
+      <li>
+        <strong>src/core</strong> - Fundamental data structures:
+        <code>Vector</code>, <code>Matrix</code>, and <code>Tensor</code>.
+      </li>
+      <li>
+        <strong>src/math</strong> - Numeric utilities, activation functions, and
+        common operations.
+      </li>
+      <li>
+        <strong>src/models</strong> - Machine learning models, neural network
+        components, and SVM implementations.
+      </li>
+      <li>
+        <strong>src/api</strong> - Inference engine for serialized model
+        execution.
+      </li>
+      <li>
+        <strong>src/loss</strong> - Loss functions used during training and
+        evaluation.
+      </li>
+      <li>
+        <strong>src/optimizers</strong> - Optimizer abstractions such as SGD.
+      </li>
+      <li>
+        <strong>src/regularizers</strong> - Regularization support for L1/L2
+        penalties.
+      </li>
+      <li>
+        <strong>src/trainers</strong> - Training loop helpers and trainer
+        abstractions.
+      </li>
+    </ul>
+
+    <h2>Design Patterns</h2>
+    <h3>Model Base Class</h3>
+    <p>
+      Most supervised models extend a shared <code>Model</code> base class that
+      defines the forward/backward pattern and maintains weights, bias, and
+      gradients.
+    </p>
+
+    <h3>Activation Strategy</h3>
+    <p>
+      Activation functions are represented as reusable objects with
+      <code>forward</code>, <code>derivative</code>, and
+      <code>initializer</code> methods. This pattern makes it easy to add or
+      swap activation functions.
+    </p>
+
+    <h3>Typed Array Storage</h3>
+    <p>
+      Vectors and matrices are implemented with <code>Float64Array</code> to
+      optimize numeric performance and memory utilization.
+    </p>
+
+    <h2>Data Flow</h2>
+    <h3>Training Flow</h3>
+    <pre><code>Input features → Model.forward → Predictions → Loss.compute → Model.backward → Gradients → Parameter update</code></pre>
+
+    <h3>Neural Network Flow</h3>
+    <p>
+      The neural network forwards inputs through every dense layer, applies
+      activation functions, and computes output activations. Backward
+      propagation uses the selected loss function to compute gradients.
+    </p>
+
+    <h2>Model Persistence</h2>
+    <p>
+      The <code>ModelInferenceEngine</code> accepts serialized model payloads
+      with weights, biases, and architecture metadata. It reconstructs layers
+      and performs inference without training logic.
+    </p>
+
+    <h2>Performance Focus</h2>
+    <ul>
+      <li>
+        <strong>Buffer reuse:</strong> Minimize allocations during training
+        loops.
+      </li>
+      <li>
+        <strong>Numeric efficiency:</strong> Use typed arrays for matrix and
+        vector storage.
+      </li>
+      <li>
+        <strong>Modular design:</strong> Separate math utilities from model
+        logic.
+      </li>
+    </ul>
+
+    <h2>Extensibility</h2>
+    <p>
+      New models, loss functions, optimizers, and activation types can be added
+      by following the base class patterns and exporting them through
+      <code>src/models/index.ts</code> or the root index.
+    </p>
+
+    <a href="index.html">Back to Home</a>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="brand">TensorForge<span>JS</span></div>
+        <div class="nav-group">
+          <div class="nav-title">Getting Started</div>
+          <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="guide.html">Full Guide</a></li>
+            <li><a href="examples.html">Examples</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Architecture</div>
+          <ul class="nav-links">
+            <li><a href="architecture.html" class="active">Internal Design</a></li>
+            <li><a href="core.html">Core Structures</a></li>
+            <li><a href="math.html">Math Operations</a></li>
+            <li><a href="models.html">Supported Models</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Reference</div>
+          <ul class="nav-links">
+            <li><a href="api.html">API Reference</a></li>
+            <li><a href="usage.html">Minimal Usage</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <h1>Internal Framework Architecture</h1>
+        <p>
+          TensorForge leverages deterministic structured arrays alongside dedicated modular patterns to avoid GC thrashing inside iterative optimization loops.
+        </p>
+
+        <h2>Source Module Map</h2>
+        <ul>
+          <li><strong>src/core</strong> - Core internal arrays (<code>Vector</code>, <code>Matrix</code>, <code>Tensor</code>).</li>
+          <li><strong>src/math</strong> - Elementwise operations and raw functional vectors.</li>
+          <li><strong>src/models</strong> - Evaluated model layers and analytical structures.</li>
+          <li><strong>src/optimizers</strong> - Parameter step updates (such as stochastic gradient descent).</li>
+        </ul>
+
+        <h2>Critical Patterns</h2>
+        <h3>Typed Buffer Optimization</h3>
+        <p>
+          All underlying structures instantiate internal <code>Float64Array</code> instances, bypassing typical browser heap execution limits.
+        </p>
+
+        <h3>Data Flow Pipeline</h3>
+        <pre>Input Primitives &rarr; Model.forward &rarr; Analytical Loss &rarr; Model.backward &rarr; Optimizer Step</pre>
+      </main>
+    </div>
+  </body>
+</html>

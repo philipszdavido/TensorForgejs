@@ -1,0 +1,212 @@
+<!-- <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>TensorForge Guide</h1>
+    <p>
+      TensorForge is a lightweight TypeScript machine learning library that
+      provides core tensor structures, math utilities, and a suite of ML models
+      for training and inference.
+    </p>
+
+    <h2>Installation</h2>
+    <pre><code>git clone https://github.com/philipszdavido/TensorForgejs.git
+cd TensorForgejs
+npm install
+npm run build</code></pre>
+
+    <h2>Project Structure</h2>
+    <ul>
+      <li><strong>src/core</strong>: Vector, Matrix, Tensor structures.</li>
+      <li>
+        <strong>src/math</strong>: Math utilities and activation functions.
+      </li>
+      <li>
+        <strong>src/models</strong>: Machine learning models and neural network
+        support.
+      </li>
+      <li>
+        <strong>src/api</strong>: Inference engine for serialized model
+        execution.
+      </li>
+      <li><strong>src/loss</strong>: Loss functions used during training.</li>
+      <li><strong>docs</strong>: Static documentation pages and styles.</li>
+    </ul>
+
+    <h2>Getting Started</h2>
+    <p>
+      TensorForge uses TypeScript-friendly APIs and is designed for both Node.js
+      and browser-based usage. The recommended workflow is:
+    </p>
+    <ol>
+      <li>Load or prepare data.</li>
+      <li>Create the appropriate model.</li>
+      <li>Run a forward pass to compute predictions.</li>
+      <li>Compute the loss.</li>
+      <li>Run a backward pass to compute gradients.</li>
+      <li>Update parameters manually or with an optimizer.</li>
+    </ol>
+
+    <h2>Import Patterns</h2>
+    <pre><code>import TensorForge from 'tensorforgejs';
+const { Core, Models, ModelInferenceEngine } = TensorForge;
+
+// Or import specific modules
+import { Matrix, Vector, Tensor } from 'tensorforgejs';
+import { LinearRegression, KNN, NeuralNetwork } from 'tensorforgejs';</code></pre>
+
+    <h2>Build and Publish</h2>
+    <p>Use the existing npm scripts:</p>
+    <pre><code>npm run build</code></pre>
+    <p>
+      The compiled JavaScript output is placed in the
+      <code>dist/</code> directory. The package entry points are defined in
+      <code>package.json</code>.
+    </p>
+
+    <h2>Core Usage Concepts</h2>
+    <ul>
+      <li>
+        <strong>Vectors</strong> are 1D arrays optimized with
+        <code>Float64Array</code>.
+      </li>
+      <li>
+        <strong>Matrices</strong> are row-major 2D arrays with efficient access
+        and multiplication.
+      </li>
+      <li><strong>Tensors</strong> represent N-dimensional data structures.</li>
+      <li>
+        Models expose a shared interface for forward/backward operations and
+        parameter updates.
+      </li>
+      <li>
+        Neural networks are built from dense layers with activation functions
+        and loss strategies.
+      </li>
+    </ul>
+
+    <h2>Training Workflow</h2>
+    <p>
+      The library provides base model classes and loss implementations. A
+      typical training loop looks like this:
+    </p>
+    <pre><code>const model = new Models.LinearRegression(inputSize);
+const learningRate = 0.01;
+
+for (let epoch = 0; epoch < epochs; epoch++) {
+  for (const sample of trainingData) {
+    const yHat = model.predict(sample.x);
+    model.backward(sample.x, sample.y, yHat);
+    for (let i = 0; i < model.weights.length; i++) {
+      model.weights[i] -= learningRate * model.gradWeights[i];
+    }
+    model.bias -= learningRate * model.gradBias;
+  }
+}</code></pre>
+
+    <h2>Where to Find More</h2>
+    <ul>
+      <li><a href="api.html">API Reference</a></li>
+      <li><a href="examples.html">Examples</a></li>
+      <li><a href="architecture.html">Architecture</a></li>
+      <li><a href="core.html">Core Structures</a></li>
+      <li><a href="models.html">Models</a></li>
+      <li><a href="math.html">Math Operations</a></li>
+      <li><a href="usage.html">Usage Example</a></li>
+    </ul>
+
+    <a href="index.html">Back to Home</a>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guide - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="brand">TensorForge<span>JS</span></div>
+        <div class="nav-group">
+          <div class="nav-title">Getting Started</div>
+          <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="guide.html" class="active">Full Guide</a></li>
+            <li><a href="examples.html">Examples</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Architecture</div>
+          <ul class="nav-links">
+            <li><a href="architecture.html">Internal Design</a></li>
+            <li><a href="core.html">Core Structures</a></li>
+            <li><a href="math.html">Math Operations</a></li>
+            <li><a href="models.html">Supported Models</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Reference</div>
+          <ul class="nav-links">
+            <li><a href="api.html">API Reference</a></li>
+            <li><a href="usage.html">Minimal Usage</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <h1>TensorForge Guide</h1>
+        <p>
+          TensorForge is a high-performance TypeScript machine learning framework featuring raw Float64 typed structures, direct analytical utility sets, and end-to-end model tooling.
+        </p>
+
+        <h2>Installation</h2>
+        <pre><code>git clone https://github.com/philipszdavido/TensorForgejs.git
+cd TensorForgejs
+npm install
+npm run build</code></pre>
+
+        <h2>Recommended Architecture Workflow</h2>
+        <ol>
+          <li>Format raw mathematical primitives via dedicated structures.</li>
+          <li>Instantiate target model classes with structural initializers.</li>
+          <li>Execute a matrix/vector forward pass to build inferences.</li>
+          <li>Pass structural evaluations into target loss classes.</li>
+          <li>Propagate backward gradients straight through graph links.</li>
+          <li>Update parameters via local hooks or custom optimizers.</li>
+        </ol>
+
+        <h2>Import Specifications</h2>
+        <pre><code>import TensorForge from 'tensorforgejs';
+const { Core, Models, ModelInferenceEngine } = TensorForge;
+
+// Or resolve individual explicit symbols
+import { Matrix, Vector, Tensor } from 'tensorforgejs';
+import { LinearRegression, KNN, NeuralNetwork } from 'tensorforgejs';</code></pre>
+
+        <h2>Production Pipeline Loop</h2>
+        <pre><code>const model = new Models.LinearRegression(inputSize);
+const learningRate = 0.01;
+
+for (let epoch = 0; epoch &lt; epochs; epoch++) {
+  for (const sample of trainingData) {
+    const yHat = model.predict(sample.x);
+    model.backward(sample.x, sample.y, yHat);
+    for (let i = 0; i &lt; model.weights.length; i++) {
+      model.weights[i] -= learningRate * model.gradWeights[i];
+    }
+    model.bias -= learningRate * model.gradBias;
+  }
+}</code></pre>
+      </main>
+    </div>
+  </body>
+</html>

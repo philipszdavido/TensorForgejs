@@ -1,0 +1,163 @@
+<!-- <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Examples - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Examples</h1>
+    <h2>1. K-Nearest Neighbors</h2>
+    <p>Use KNN for simple classification tasks based on proximity.</p>
+    <pre><code>import KNN from '../src/models/knn/KNN';
+
+const samples = [
+  { data: [1, 2], label: 'A' },
+  { data: [2, 3], label: 'A' },
+  { data: [8, 9], label: 'B' },
+  { data: [9, 10], label: 'B' }
+];
+
+const knn = new KNN(samples, 3);
+const prediction = knn.predict([1.5, 2.5]);
+console.log('Predicted label:', prediction);
+</code></pre>
+
+    <h2>2. Linear Regression</h2>
+    <p>Predict numeric values using a linear model.</p>
+    <pre><code>import { LinearRegression } from 'tensorforgejs';
+
+const model = new LinearRegression(2);
+model.setWeights([0.5, 0.5]);
+model.setBias(0.1);
+
+const x = [2, 4];
+const yHat = model.predict(x);
+console.log('Prediction:', yHat);
+</code></pre>
+
+    <h2>3. Logistic Regression</h2>
+    <p>Use logistic regression for binary classification.</p>
+    <pre><code>import LogisticRegression from '../src/models/LogisticRegression';
+
+const model = new LogisticRegression(2);
+const probability = model.predict([1, 2]);
+console.log('Probability:', probability);
+</code></pre>
+
+    <h2>4. Neural Network Forward Pass</h2>
+    <p>Run a forward pass through a small dense neural network.</p>
+    <pre><code>import { NeuralNetwork, ActivationEnum } from 'tensorforgejs';
+import { MSELoss } from 'tensorforgejs';
+
+const network = new NeuralNetwork(
+  { size: 4 },
+  [
+    { size: 8, activation: ActivationEnum.ReLU },
+    { size: 4, activation: ActivationEnum.ReLU }
+  ],
+  { size: 2, activation: ActivationEnum.Softmax },
+  new MSELoss()
+);
+
+const input = [0.5, 0.8, 0.1, 0.3];
+const output = network.forward(input);
+console.log('Network output:', output.toArray());
+</code></pre>
+
+    <h2>5. SVM Prediction</h2>
+    <p>Use a linear SVM to compute the decision value for a sample.</p>
+    <pre><code>import LinearSVM from '../src/models/svm/LinearSVM';
+
+const svm = new LinearSVM(3);
+const score = svm.forward([1, -1, 0.5]);
+console.log('Decision score:', score);
+</code></pre>
+
+    <h2>6. Matrix and Vector Operations</h2>
+    <p>Perform basic math with core structures.</p>
+    <pre><code>import { Matrix, Vector } from 'tensorforgejs';
+
+const v = Vector.from([1, 2, 3]);
+const m = Matrix.zeros(3, 3);
+m.set(0, 0, 1);
+
+const result = Matrix.matrixMulVector(m, v);
+console.log('Result vector:', result.toArray());
+</code></pre>
+
+    <a href="index.html">Back to Home</a>
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Examples - TensorForge Docs</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <nav class="sidebar">
+        <div class="brand">TensorForge<span>JS</span></div>
+        <div class="nav-group">
+          <div class="nav-title">Getting Started</div>
+          <ul class="nav-links">
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="guide.html">Full Guide</a></li>
+            <li><a href="examples.html" class="active">Examples</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Architecture</div>
+          <ul class="nav-links">
+            <li><a href="architecture.html">Internal Design</a></li>
+            <li><a href="core.html">Core Structures</a></li>
+            <li><a href="math.html">Math Operations</a></li>
+            <li><a href="models.html">Supported Models</a></li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-title">Reference</div>
+          <ul class="nav-links">
+            <li><a href="api.html">API Reference</a></li>
+            <li><a href="usage.html">Minimal Usage</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <main class="main-content">
+        <h1>Implementation Examples</h1>
+
+        <h2>Neural Network Graph Configuration</h2>
+        <pre><code>import { NeuralNetwork, ActivationEnum, MSELoss } from 'tensorforgejs';
+
+const network = new NeuralNetwork(
+  { size: 4 },
+  [
+    { size: 8, activation: ActivationEnum.ReLU },
+    { size: 4, activation: ActivationEnum.ReLU }
+  ],
+  { size: 2, activation: ActivationEnum.Softmax },
+  new MSELoss()
+);
+
+const output = network.forward([0.5, 0.8, 0.1, 0.3]);
+console.log('Result:', output.toArray());</code></pre>
+
+        <h2>K-Nearest Neighbors</h2>
+        <pre><code>import KNN from '../src/models/knn/KNN';
+
+const knn = new KNN([
+  { data: [1, 2], label: 'Class A' },
+  { data: [8, 9], label: 'Class B' }
+], 3);
+
+console.log(knn.predict([1.5, 2.5]));</code></pre>
+      </main>
+    </div>
+  </body>
+</html>
