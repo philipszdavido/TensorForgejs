@@ -1,6 +1,6 @@
 import {Matrix} from "../../core/Matrix";
 import {Vector} from "../../core/Vector";
-import {elementwise_addition, elementwise_multiplication} from "../../math/vector/sum";
+import {elementwise_addition} from "../../math/vector/sum";
 import transpose from "../../math/transpose";
 import {SoftmaxCrossEntropy} from "./SoftmaxCrossEntropy";
 import {Activation, ActivationEnum, ActivationUse, Hidden, Input, Layer, LossFunction, Output} from "./Types";

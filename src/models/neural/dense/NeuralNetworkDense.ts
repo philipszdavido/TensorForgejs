@@ -2,7 +2,6 @@ import DenseLayer from "../DenseLayer";
 import {Vector} from "../../../core/Vector";
 import {SoftmaxCrossEntropy} from "../SoftmaxCrossEntropy";
 import {LossFunction} from "../Types";
-import {elementwise_multiplication} from "../../../math/vector/sum";
 
 export class NeuralNetworkDense {
     constructor(
