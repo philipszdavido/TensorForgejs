@@ -1,17 +1,19 @@
 import {Vector} from "../../core/Vector";
 import {Matrix} from "../../core/Matrix";
-import {ReLUActivation, SigmoidActivation, SoftmaxPassThrough} from "./Activation";
+import {LinearActivation, ReLUActivation, SigmoidActivation, SoftmaxPassThrough} from "./Activation";
 
 export enum ActivationEnum {
     relu,
     softmax,
     sigmoid,
+    linear,
 }
 
 export const ActivationUse = {
     [ActivationEnum.relu]: ReLUActivation,
     [ActivationEnum.softmax]: SoftmaxPassThrough,
-    [ActivationEnum.sigmoid]: SigmoidActivation
+    [ActivationEnum.sigmoid]: SigmoidActivation,
+    [ActivationEnum.linear]: LinearActivation
 }
 
 export type Activation = {
