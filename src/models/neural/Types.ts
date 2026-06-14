@@ -7,6 +7,7 @@ import {
     SigmoidActivation,
     SoftmaxPassThrough, TanhActivation
 } from "./Activation";
+import {Tensor} from "../../core/Tensor";
 
 export enum ActivationEnum {
     relu,
@@ -62,3 +63,8 @@ export type Layer = {
 
     activation: ActivationEnum;
 };
+
+export interface NLayer {
+    forward: (input: Tensor) => Tensor;
+    backward: (input: Tensor) => Tensor;
+}
