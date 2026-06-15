@@ -51,4 +51,8 @@ export class MaxPooling2D {
         return max;
     }
 
+    backward(input: Matrix) {
+
+    }
+
 }

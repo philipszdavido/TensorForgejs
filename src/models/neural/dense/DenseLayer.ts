@@ -1,6 +1,6 @@
 import {Matrix} from "../../../core/Matrix";
 import {Vector} from "../../../core/Vector";
-import {Activation, ActivationEnum, ActivationUse} from "../Types";
+import {Activation, ActivationEnum, ActivationUse, LayerInterface} from "../Types";
 import transpose from "../../../math/transpose";
 
 // Table for Tensor
@@ -14,7 +14,7 @@ import transpose from "../../../math/transpose";
 // | dB       | (out)      |
 
 // this will have an input and output, activation
-export default class DenseLayer {
+export default class DenseLayer implements LayerInterface {
 
     weight: Matrix // W (out × in)
     bias: Vector // b (out)

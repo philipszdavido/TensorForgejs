@@ -67,4 +67,20 @@ export type Layer = {
 export interface NLayer {
     forward: (input: Tensor) => Tensor;
     backward: (input: Tensor) => Tensor;
+
+    updateWeights(): void;
+
+    parameters(): Tensor[]
+
+    gradients(): Tensor[]
+}
+
+export interface LayerInterface {
+
+    forward(input: any): any;
+
+    backward(grad: any): any;
+
+    updateWeights?(lr: number): void;
+
 }

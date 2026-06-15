@@ -1,13 +1,13 @@
-import DenseLayer from "../DenseLayer";
+import DenseLayer from "./DenseLayer";
 import {Vector} from "../../../core/Vector";
 import {SoftmaxCrossEntropy} from "../SoftmaxCrossEntropy";
-import {LossFunction} from "../Types";
+import {LayerInterface, LossFunction} from "../Types";
 import {Matrix} from "../../../core/Matrix";
 
-export class NeuralNetworkDense {
+export class NeuralNetworkDense implements LayerInterface {
     constructor(
         public readonly denseLayers: DenseLayer[],
-        public readonly loss: LossFunction,
+        public readonly loss: LossFunction | SoftmaxCrossEntropy,
     ) {
     }
 
@@ -54,8 +54,10 @@ export class NeuralNetworkDense {
                     dA,
                     prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
                 )
-            }
+            } else delta = dA
         }
+
+        return delta;
 
     }
 
