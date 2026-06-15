@@ -1,9 +1,11 @@
-import {Matrix} from "../../core/Matrix";
+import {Matrix} from "../../../core/Matrix";
 import {SlidingWindow} from "./SlidingWindow";
 
-export class MaxPooling2D {
+// training a convo means directly modifying the weights of your convolutional kernels
+export class Convo2D {
 
     private feature!: Matrix
+
     private slidingWindow: SlidingWindow
 
     constructor(public readonly kernel: Matrix, public readonly stride: number = 1) {
@@ -11,10 +13,11 @@ export class MaxPooling2D {
     }
 
     forward(input: Matrix) {
-        return this.maxPool(input);
+        return this.convolution(input);
     }
 
-    maxPool(input: Matrix) {
+    convolution(input: Matrix) {
+
         const slide_vert = this.slidingWindow.slide_vert_fn(this.kernel.columns, input.columns);
         const slide_down = this.slidingWindow.slide_down_fn(this.kernel.rows, input.rows);
 
@@ -24,31 +27,34 @@ export class MaxPooling2D {
         for (let i = 0; i < slide_down; i++) {
             for (let j = 0; j < slide_vert; j++) {
                 const extractedWindow = this.slidingWindow.extractWindow(input, i * this.stride, j * this.stride);
-                this.feature.set(i, j, this.max(extractedWindow))
+                this.feature.set(i, j, this.convolveWindow(extractedWindow))
             }
         }
+
         return this.feature
+
     }
 
-    max(extractedWindow: Matrix) {
+    convolveWindow(holder: Matrix) {
 
-        let array = []
+        let sum = 0
 
-        for (let i = 0; i < extractedWindow.rows; i++) {
-            for (let j = 0; j < extractedWindow.columns; j++) {
-                array.push(extractedWindow.get(i, j));
+        for (let i = 0; i < holder.rows; i++) {
+            for (let j = 0; j < holder.columns; j++) {
+                const h = holder.get(i, j);
+                const fill = this.kernel.get(i, j);
+                sum += fill * h;
             }
+
         }
 
-        let max = -Infinity;
+        return sum;
 
-        for (const v of array) {
-            if (v > max) {
-                max = v;
-            }
-        }
-
-        return max;
     }
+
+    backward() {
+
+    }
+
 
 }

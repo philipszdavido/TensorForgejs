@@ -1,8 +1,17 @@
-import {Matrix} from "../../core/Matrix";
-import {Vector} from "../../core/Vector";
-import {Activation, ActivationEnum, ActivationUse} from "./Types";
-import {elementwise_addition, elementwise_multiplication} from "../../math/vector/sum";
-import transpose from "../../math/transpose";
+import {Matrix} from "../../../core/Matrix";
+import {Vector} from "../../../core/Vector";
+import {Activation, ActivationEnum, ActivationUse} from "../Types";
+import transpose from "../../../math/transpose";
+
+// Table for Tensor
+// | Variable | Shape      |
+// | -------- | ---------- |
+// | input    | (1 × in)   |
+// | weight   | (in × out) |
+// | bias     | (out)      |
+// | output   | (1 × out)  |
+// | dW       | (in × out) |
+// | dB       | (out)      |
 
 // this will have an input and output, activation
 export default class DenseLayer {
@@ -16,6 +25,9 @@ export default class DenseLayer {
     a?: Vector; // activation
 
     activation: Activation;
+
+    l1?: Vector; // L1 Regularization
+    l2?: Vector; // L2 Regularization
 
     constructor(public readonly inputSize: number, public readonly outputSize: number, public readonly actEnum: ActivationEnum) {
 

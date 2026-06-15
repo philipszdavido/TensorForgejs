@@ -1,4 +1,4 @@
-import {Matrix} from "../../core/Matrix";
+import {Matrix} from "../../../core/Matrix";
 
 export class Flatten {
 
