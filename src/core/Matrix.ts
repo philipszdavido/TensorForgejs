@@ -36,6 +36,14 @@ export class Matrix {
         this.data.set(row, start);
     }
 
+    fill(val: number) {
+        for (let index = 0; index < this.rows; index++) {
+            for (let j = 0; j < this.columns; j++) {
+                this.set(index, j, val);
+            }
+        }
+    }
+
     static matrixMulVector(m: Matrix, v: Vector): Vector {
         assert(m.columns === v.length, `Shape mismatch: Matrix columns (${m.columns}) must equal Vector length (${v.length})`);
         const result = new Vector(m.rows);
@@ -251,6 +259,22 @@ export class Matrix {
         }
 
         return tensor;
+    }
+
+    static toMatrix(pixels: number[], row: number, column: number): Matrix {
+        return Matrix.fromArray(pixels, row, column);
+    }
+
+    static fromArray(values: number[], row: number, column: number): Matrix {
+        const m = new Matrix(row, column);
+        let k = 0;
+
+        for (let r = 0; r < row; r++) {
+            for (let c = 0; c < column; c++) {
+                m.set(r, c, values[k++]);
+            }
+        }
+        return m;
     }
 
 }
