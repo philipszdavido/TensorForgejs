@@ -71,20 +71,16 @@ export class Convo2D implements LayerInterface {
         for (let r = 0; r < dOutput.rows; r++) {
             for (let c = 0; c < dOutput.columns; c++) {
 
-                const grad =
-                    dOutput.get(r, c);
+                const grad = dOutput.get(r, c);
 
-                const rowStart =
-                    r * this.stride;
+                const rowStart = r * this.stride;
 
-                const colStart =
-                    c * this.stride;
+                const colStart = c * this.stride;
 
                 for (let kr = 0; kr < this.kernel.rows; kr++) {
                     for (let kc = 0; kc < this.kernel.columns; kc++) {
 
-                        const currentKernelGrad =
-                            this.dKernel.get(kr, kc);
+                        const currentKernelGrad = this.dKernel.get(kr, kc);
 
                         this.dKernel.set(
                             kr,
