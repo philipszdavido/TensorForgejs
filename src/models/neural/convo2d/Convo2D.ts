@@ -128,6 +128,8 @@ export class Convo2D implements LayerInterface {
             }
         }
 
+        this.zeroGrad()
+
     }
 
     zeroGrad(): void {
