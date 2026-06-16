@@ -3,37 +3,36 @@ import {Vector} from "../../../core/Vector";
 import {LayerInterface} from "../Types";
 
 export class Flatten implements LayerInterface {
+    private inputShape: { rows: number, cols: number }[] = [];
 
-    private rows!: number;
-    private cols!: number;
+    forward(input: Matrix[]): Vector {
+        this.inputShape = input.map(m => ({rows: m.rows, cols: m.columns}));
 
-    forward(input: Matrix): Vector {
+        const flattenedData: number[] = [];
 
-        this.rows = input.rows;
-        this.cols = input.columns;
-
-        const data: number[] = [];
-
-        for (let r = 0; r < input.rows; r++) {
-            for (let c = 0; c < input.columns; c++) {
-                data.push(input.get(r, c));
+        for (const matrix of input) {
+            for (let r = 0; r < matrix.rows; r++) {
+                for (let c = 0; c < matrix.columns; c++) {
+                    flattenedData.push(matrix.get(r, c));
+                }
             }
         }
 
-        return Vector.from(data);
+        return Vector.from(flattenedData);
     }
 
-    backward(grad: Vector): Matrix {
+    backward(grad: Vector): Matrix[] {
+        const output: Matrix[] = [];
+        let cursor = 0;
 
-        const output =
-            new Matrix(this.rows, this.cols);
-
-        let k = 0;
-
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                output.set(r, c, grad.get(k++));
+        for (const shape of this.inputShape) {
+            const matrix = new Matrix(shape.rows, shape.cols);
+            for (let r = 0; r < shape.rows; r++) {
+                for (let c = 0; c < shape.cols; c++) {
+                    matrix.set(r, c, grad.get(cursor++));
+                }
             }
+            output.push(matrix);
         }
 
         return output;
@@ -41,5 +40,4 @@ export class Flatten implements LayerInterface {
 
     updateWeights() {
     }
-
 }

@@ -3,47 +3,63 @@ import {LayerInterface} from "../Types";
 
 export class ReLU2D implements LayerInterface {
 
-    private input!: Matrix;
+    private input!: Matrix[];
 
-    forward(input: Matrix) {
+    forward(input: Matrix[]) {
 
         this.input = input;
+        const outputs = []
 
-        const out =
-            Matrix.zeros(
-                input.rows,
-                input.columns
-            );
+        for (let index = 0; index < input.length; index++) {
 
-        for (let i = 0; i < input.rows; i++) {
-            for (let j = 0; j < input.columns; j++) {
-
-                out.set(
-                    i,
-                    j,
-                    Math.max(
-                        0,
-                        input.get(i, j)
-                    )
+            const out =
+                Matrix.zeros(
+                    input[index].rows,
+                    input[index].columns
                 );
+
+            for (let i = 0; i < input[index].rows; i++) {
+                for (let j = 0; j < input[index].columns; j++) {
+
+                    out.set(
+                        i,
+                        j,
+                        Math.max(
+                            0,
+                            input[index].get(i, j)
+                        )
+                    );
+                }
             }
+
+            outputs.push(out);
+
         }
 
-        return out;
+        return outputs
+
     }
 
-    backward(input: Matrix) {
-        const b = Matrix.zeros(input.rows, input.columns);
+    backward(input: Matrix[]) {
 
-        for (let j = 0; j < b.rows; j++) {
-            for (let k = 0; k < b.columns; k++) {
-                b.set(j, k, this.input.get(j, k) > 0
-                    ? input.get(j, k)
-                    : 0)
+        const o = [];
+
+        for (let index = 0; index < input.length; index++) {
+
+            const b = Matrix.zeros(input[index].rows, input[index].columns);
+
+            for (let j = 0; j < b.rows; j++) {
+                for (let k = 0; k < b.columns; k++) {
+                    b.set(j, k, this.input[index].get(j, k) > 0
+                        ? input[index].get(j, k)
+                        : 0)
+                }
             }
+
+            o.push(b)
         }
 
-        return b
+        return o
 
     }
 
