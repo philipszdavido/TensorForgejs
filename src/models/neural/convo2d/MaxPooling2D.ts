@@ -43,7 +43,6 @@ export class MaxPooling2D implements LayerInterface {
     max(extractedWindow: Matrix) {
         let localRow = 0;
         let localCol = 0;
-        let array = []
         let max = -Infinity
 
         for (let i = 0; i < extractedWindow.rows; i++) {
@@ -79,6 +78,9 @@ export class MaxPooling2D implements LayerInterface {
 
         return input;
 
+    }
+
+    updateWeights() {
     }
 
 }

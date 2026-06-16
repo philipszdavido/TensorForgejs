@@ -47,4 +47,7 @@ export class ReLU2D implements LayerInterface {
 
     }
 
+    updateWeights() {
+    }
+
 }

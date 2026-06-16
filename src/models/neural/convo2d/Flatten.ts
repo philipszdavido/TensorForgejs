@@ -39,4 +39,7 @@ export class Flatten implements LayerInterface {
         return output;
     }
 
+    updateWeights() {
+    }
+
 }
