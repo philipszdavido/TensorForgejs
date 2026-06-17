@@ -277,4 +277,17 @@ export class Matrix {
         return m;
     }
 
+    static fromNestedArray(nestedArray: number[][], rows: number, columns: number) {
+
+        const m = new Matrix(rows, columns);
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < columns; c++) {
+                m.set(r, c, nestedArray[r][c]);
+            }
+        }
+
+        return m;
+    }
+
 }
