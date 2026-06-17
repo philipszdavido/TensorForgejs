@@ -108,4 +108,20 @@ export default class DenseLayer implements LayerInterface {
         return W;
     }
 
+    getWeight() {
+        return this.weight.toNestedArray()
+    }
+
+    getBias() {
+        return this.bias.toArray();
+    }
+
+    setWeight(weights: number[][]) {
+        this.weight = Matrix.from(weights)
+    }
+
+    setBias(bias: number[]) {
+        this.bias = Vector.from(bias)
+    }
+
 }
