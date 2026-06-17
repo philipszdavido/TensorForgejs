@@ -184,4 +184,20 @@ export class NeuralNetwork {
         return ActivationUse[type];
     }
 
+    public getWeights() {
+        return this.layers.map((layer, index) => ({
+            layerIndex: index,
+            weights: layer.weight.toNestedArray(),
+            biases: layer.bias.toArray(),
+        }));
+    }
+
+    public setWeights(savedLayers: any[]) {
+        savedLayers.forEach((savedLayer, index) => {
+            this.layers[index] = (savedLayer.weights);
+            this.layers[index] = (savedLayer.biases);
+        });
+    }
+
+
 }
