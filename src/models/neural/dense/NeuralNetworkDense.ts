@@ -82,4 +82,19 @@ export class NeuralNetworkDense implements LayerInterface {
         return this.denseLayers[this.denseLayers.length - 1];
     }
 
+    public getWeights() {
+        return this.denseLayers.map((layer, index) => ({
+            layerIndex: index,
+            weights: layer.getWeight(),
+            biases: layer.getBias()
+        }));
+    }
+
+    public setWeights(savedLayers: any[]) {
+        savedLayers.forEach((savedLayer, index) => {
+            this.denseLayers[index].setWeight(savedLayer.weights);
+            this.denseLayers[index].setBias(savedLayer.biases);
+        });
+    }
+
 }
