@@ -25,7 +25,7 @@ export const ActivationUse = {
     [ActivationEnum.linear]: LinearActivation,
     [ActivationEnum.leakyRelu]: LeakyReLUActivation,
     [ActivationEnum.tanh]: TanhActivation,
-}
+};
 
 export type Activation = {
     forward(x: Vector): Vector;
