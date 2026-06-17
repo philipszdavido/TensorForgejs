@@ -12,7 +12,10 @@ export class Convo2D implements LayerInterface {
     private dKernel: Matrix[] = []
     private input!: Matrix;
 
-    constructor(public readonly kernel: Matrix[], public readonly stride: number = 1) {
+    private inputRows!: number;
+    private inputColumns!: number;
+
+    constructor(private kernel: Matrix[], public readonly stride: number = 1) {
         for (let i = 0; i < this.kernel.length; i++) {
             const kernel = this.kernel[i];
             this.slidingWindow.push(new SlidingWindow(stride, kernel));
@@ -22,10 +25,12 @@ export class Convo2D implements LayerInterface {
 
     forward(input: Matrix) {
         this.input = input;
+        this.inputRows = input.rows
+        this.inputColumns = input.columns;
 
         for (let i = 0; i < this.kernel.length; i++) {
             const kernel = this.kernel[i];
-            this.feature[i] = (this.convolution(input, i));
+            this.feature[i] = this.convolution(input, i);
         }
 
         return this.feature
@@ -155,6 +160,24 @@ export class Convo2D implements LayerInterface {
 
     zeroGrad(index: number): void {
         this.dKernel[index].fill(0);
+    }
+
+    public getWeights() {
+        return this.kernel.map(filter => filter.toNestedArray());
+    }
+
+    public setWeights(savedFilters: any[][], kernelSize: number) {
+        this.kernel = savedFilters.map(fArray => Matrix.fromNestedArray(fArray, kernelSize, kernelSize));
+
+    }
+
+    public setInputRowsAndColumns(rows: number, cols: number) {
+        this.inputColumns = cols
+        this.inputRows = rows
+    }
+
+    public getInputRowsColumns() {
+        return {rows: this.inputRows, columns: this.inputColumns};
     }
 
 }
