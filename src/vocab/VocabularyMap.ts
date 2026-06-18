@@ -3,28 +3,74 @@ import {VocabTextCleaner} from "./VocabTokenizer";
 export class VocabularyMap {
     private readonly cleaner = new VocabTextCleaner()
 
+    private readonly freq = new Map<string, number>();
     private readonly vocab = new Map<string, number>();
+    private index = 0;
 
-    tokenize(text: string) {
-        const tokens = text.split(" ");
+    constructor() {
+        this.vocab.set("[UNK]", this.index)
+    }
+
+    public addDocuments(text: string): void {
+
+        const cleanedText = this.cleaner.clean(text)
+        const tokens = cleanedText.split(" ");
 
         for (let i = 0; i < tokens.length; i++) {
+
             const tok = tokens[i];
-            if (this.vocab.has(tok)) {
-                let value = this.vocab.get(tok) || 0;
-                this.vocab.set(tok, ++value)
+
+            if (this.freq.has(tok)) {
+                let value = this.freq.get(tok) || 0;
+                this.freq.set(tok, ++value)
             } else {
-                this.vocab.set(tok, 1);
+                this.freq.set(tok, 1);
             }
+
+        }
+
+    }
+
+    tokenize(maxVocabSize: number = 5000) {
+
+        const sortedTokens = Array.from(this.freq.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(entry => entry[0]);
+
+        const topTokens = sortedTokens.slice(0, maxVocabSize - 1);
+
+        this.vocab.clear();
+        this.vocab.set("[UNK]", 0);
+
+        for (let i = 0; i < topTokens.length; i++) {
+            const tok = topTokens[i];
+            this.vocab.set(tok, i + 1);
         }
 
     }
 
     encode(text: string) {
-        
+
+        const cleanedText = this.cleaner.clean(text)
+        const tokens = cleanedText.split(" ");
+
+        const encoded = []
+
+        for (let i = 0; i < tokens.length; i++) {
+            const tok = tokens[i];
+            if (this.vocab.has(tok)) {
+                let value = this.vocab.get(tok);
+                encoded.push(value)
+            } else encoded.push(0);
+        }
+        return encoded;
     }
 
     getVocab() {
         return this.vocab;
+    }
+
+    getFreq() {
+        return this.freq;
     }
 }
