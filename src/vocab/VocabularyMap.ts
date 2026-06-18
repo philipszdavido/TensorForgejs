@@ -1,4 +1,5 @@
 import {VocabTextCleaner} from "./VocabTokenizer";
+import {SPAM_STOP_WORDS} from "./StopWords";
 
 export class VocabularyMap {
     private readonly cleaner = new VocabTextCleaner()
@@ -6,6 +7,7 @@ export class VocabularyMap {
     private readonly freq = new Map<string, number>();
     private readonly vocab = new Map<string, number>();
     private index = 0;
+    private currentVocabSize = 1;
 
     constructor() {
         this.vocab.set("[UNK]", this.index)
@@ -19,6 +21,10 @@ export class VocabularyMap {
         for (let i = 0; i < tokens.length; i++) {
 
             const tok = tokens[i];
+
+            if (!tok || SPAM_STOP_WORDS.has(tok)) {
+                continue;
+            }
 
             if (this.freq.has(tok)) {
                 let value = this.freq.get(tok) || 0;
@@ -47,6 +53,30 @@ export class VocabularyMap {
             this.vocab.set(tok, i + 1);
         }
 
+        this.currentVocabSize = this.vocab.size;
+
+    }
+
+    vectorize(text: string): Float32Array {
+        const cleanedText = this.cleaner.clean(text);
+        const tokens = cleanedText.split(" ");
+        const vector = new Float32Array(this.currentVocabSize);
+
+        for (let i = 0; i < tokens.length; i++) {
+            const tok = tokens[i];
+
+            if (!tok || SPAM_STOP_WORDS.has(tok)) {
+                continue;
+            }
+
+            if (this.vocab.has(tok)) {
+                const idx = this.vocab.get(tok)!;
+                vector[idx] = 1.0;
+            } else {
+                vector[0] = 1.0;
+            }
+        }
+        return vector;
     }
 
     encode(text: string) {
