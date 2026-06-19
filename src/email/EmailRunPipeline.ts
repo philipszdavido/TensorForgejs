@@ -9,16 +9,17 @@ export interface EmailRow {
 export class EmailRunPipeline {
 
     runPipeline(absoluteOrRelativePath: string) {
-        
+
         const parser = new CSVParser();
 
-        const dataset = parser.parse<EmailRow>(absoluteOrRelativePath);
+        const dataset = parser.parse(absoluteOrRelativePath);
 
         const vocabMap = new VocabularyMap();
         const rawTexts: string[] = [];
         const labels: number[] = [];
 
         for (const row of dataset) {
+
             vocabMap.addDocuments(row.text);
             rawTexts.push(row.text);
 
