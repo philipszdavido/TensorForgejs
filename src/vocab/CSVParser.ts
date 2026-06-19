@@ -3,35 +3,7 @@ import * as path from 'path';
 
 export class CSVParser {
 
-    public parseCsvLine(line: string): string[] {
-        const result: string[] = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            const nextChar = line[i + 1];
-
-            if (char === '"') {
-                if (inQuotes && nextChar === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        result.push(current.trim());
-        return result;
-    }
-
-    public parse<T = Record<string, string>>(filePath: string): T[] {
-
+    public parse(filePath: string): Record<string, string>[] {
         const csvFilePath = path.resolve(filePath);
 
         if (!fs.existsSync(csvFilePath)) {
@@ -39,29 +11,89 @@ export class CSVParser {
         }
 
         const fileContent = fs.readFileSync(csvFilePath, 'utf-8');
-        const lines = fileContent.split(/\r?\n/);
 
-        if (lines.length === 0 || !lines[0]) {
-            throw new Error("CSV file is empty");
-        }
+        const json = this.parseCSV(fileContent);
 
-        const headers = this.parseCsvLine(lines[0]);
-        const records: T[] = [];
+        return json
 
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
+    }
 
-            const columns = this.parseCsvLine(line);
-            const record = {} as Record<string, string>;
+    parseCSV(csv: string): Record<string, string>[] {
+        const rows: string[][] = [];
 
-            for (let j = 0; j < headers.length; j++) {
-                record[headers[j]] = columns[j] !== undefined ? columns[j] : '';
+        let row: string[] = [];
+        let field = "";
+
+        let i = 0;
+        let inQuotes = false;
+
+        while (i < csv.length) {
+            const char = csv[i];
+            const next = csv[i + 1];
+
+            if (inQuotes && char === '"' && next === '"') {
+                field += '"';
+                i += 2;
+                continue;
             }
 
-            records.push(record as T);
+            if (char === '"') {
+                inQuotes = !inQuotes;
+                i++;
+                continue;
+            }
+
+            if (!inQuotes && char === ',') {
+                row.push(field);
+                field = "";
+                i++;
+                continue;
+            }
+
+            if (!inQuotes && char === '\r' && next === '\n') {
+                row.push(field);
+                rows.push(row);
+
+                row = [];
+                field = "";
+
+                i += 2;
+                continue;
+            }
+
+            if (!inQuotes && char === '\n') {
+                row.push(field);
+                rows.push(row);
+
+                row = [];
+                field = "";
+
+                i++;
+                continue;
+            }
+
+            field += char;
+            i++;
         }
 
-        return records;
+        row.push(field);
+        rows.push(row);
+
+        if (rows.length === 0) {
+            return [];
+        }
+
+        const headers = rows[0];
+
+        return rows.slice(1).map(row => {
+            const obj: Record<string, string> = {};
+
+            headers.forEach((header, index) => {
+                obj[header] = row[index] ?? "";
+            });
+
+            return obj;
+        });
     }
+
 }
