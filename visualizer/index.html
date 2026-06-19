@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Neural Network Visualizer</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+
+        #net {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            margin-top: 40px;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .neuron {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #333;
+            transition: 0.3s;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Neural Network Visualizer (XOR)</h2>
+
+<button onclick="trainStep()">Train Step</button>
+<button onclick="runForward()">Forward</button>
+
+<div id="net"></div>
+
+<script>
+
+    class Vector {
+        constructor(size) {
+            this.data = new Float32Array(size);
+        }
+
+        static from(arr) {
+            const v = new Vector(arr.length);
+            for (let i = 0; i < arr.length; i++) v.data[i] = arr[i];
+            return v;
+        }
+
+        get(i) {
+            return this.data[i];
+        }
+
+        set(i, v) {
+            this.data[i] = v;
+        }
+
+        get length() {
+            return this.data.length;
+        }
+
+        toArray() {
+            return [...this.data];
+        }
+    }
+
+    class Matrix {
+        constructor(rows, cols) {
+            this.rows = rows;
+            this.cols = cols;
+            this.data = Array.from({length: rows}, () =>
+                new Float32Array(cols)
+            );
+        }
+
+        static random(r, c) {
+            const m = new Matrix(r, c);
+            for (let i = 0; i < r; i++)
+                for (let j = 0; j < c; j++)
+                    m.data[i][j] = Math.random() - 0.5;
+            return m;
+        }
+
+        static zeros(r, c) {
+            return new Matrix(r, c);
+        }
+
+        get(r, c) {
+            return this.data[r][c];
+        }
+
+        set(r, c, v) {
+            this.data[r][c] = v;
+        }
+
+        static mulVec(m, v) {
+            const res = new Vector(m.rows);
+
+            for (let i = 0; i < m.rows; i++) {
+                let sum = 0;
+                for (let j = 0; j < m.cols; j++) {
+                    sum += m.get(i, j) * v.get(j);
+                }
+                res.set(i, sum);
+            }
+            return res;
+        }
+
+        static outer(a, b) {
+            const m = new Matrix(a.length, b.length);
+            for (let i = 0; i < a.length; i++)
+                for (let j = 0; j < b.length; j++)
+                    m.set(i, j, a.get(i) * b.get(j));
+            return m;
+        }
+
+        static transpose(m) {
+            const t = new Matrix(m.cols, m.rows);
+            for (let i = 0; i < m.rows; i++)
+                for (let j = 0; j < m.cols; j++)
+                    t.set(j, i, m.get(i, j));
+            return t;
+        }
+    }
+
+    function ReLU(v) {
+        const r = new Vector(v.length);
+        for (let i = 0; i < v.length; i++)
+            r.set(i, Math.max(0, v.get(i)));
+        return r;
+    }
+
+    function ReLU_d(v) {
+        const r = new Vector(v.length);
+        for (let i = 0; i < v.length; i++)
+            r.set(i, v.get(i) > 0 ? 1 : 0);
+        return r;
+    }
+
+    function softmax(arr) {
+        const max = Math.max(...arr);
+        const exps = arr.map(x => Math.exp(x - max));
+        const sum = exps.reduce((a, b) => a + b, 0);
+        return exps.map(x => x / sum);
+    }
+
+    function sub(a, b) {
+        const r = new Vector(a.length);
+        for (let i = 0; i < a.length; i++)
+            r.set(i, a.get(i) - b.get(i));
+        return r;
+    }
+
+    class NeuralNetwork {
+
+        constructor(input, hidden, output) {
+            this.layers = [];
+
+            let inSize = input;
+
+            for (let h of hidden) {
+                this.layers.push({
+                    W: Matrix.random(h, inSize),
+                    b: Vector.from(Array(h).fill(0)),
+                    dW: Matrix.zeros(h, inSize),
+                    dB: Vector.from(Array(h).fill(0))
+                });
+                inSize = h;
+            }
+
+            this.layers.push({
+                W: Matrix.random(output, inSize),
+                b: Vector.from(Array(output).fill(0)),
+                dW: Matrix.zeros(output, inSize),
+                dB: Vector.from(Array(output).fill(0))
+            });
+        }
+
+        forward(x) {
+            let a = Vector.from(x);
+
+            for (let i = 0; i < this.layers.length; i++) {
+                const L = this.layers[i];
+
+                const z = Matrix.mulVec(L.W, a);
+
+                const zArr = z.toArray().map((v, i) => v + L.b.get(i));
+
+                L.z = zArr;
+                L.input = a;
+
+                if (i === this.layers.length - 1) {
+                    L.a = Vector.from(softmax(zArr));
+                } else {
+                    const relu = Vector.from(zArr.map(x => Math.max(0, x)));
+                    L.a = relu;
+                }
+
+                a = L.a;
+            }
+
+            return a;
+        }
+
+        backward(y) {
+
+            const out = this.layers[this.layers.length - 1];
+            let error = sub(out.a, Vector.from(y));
+
+            for (let i = this.layers.length - 1; i >= 0; i--) {
+
+                const L = this.layers[i];
+
+                L.dB = Vector.from(error.toArray());
+                L.dW = Matrix.outer(error, L.input);
+
+                if (i > 0) {
+                    const WT = Matrix.transpose(L.W);
+
+                    let back = Matrix.mulVec(WT, error);
+
+                    const prevZ = Vector.from(this.layers[i - 1].z);
+
+                    error = Vector.from(
+                        back.toArray().map((v, j) =>
+                            v * (prevZ.get(j) > 0 ? 1 : 0)
+                        )
+                    );
+                }
+            }
+        }
+
+        update(lr) {
+            for (let L of this.layers) {
+
+                for (let i = 0; i < L.W.rows; i++)
+                    for (let j = 0; j < L.W.cols; j++)
+                        L.W.set(i, j,
+                            L.W.get(i, j) - lr * L.dW.get(i, j)
+                        );
+
+                for (let i = 0; i < L.b.length; i++)
+                    L.b.set(i,
+                        L.b.get(i) - lr * L.dB.get(i)
+                    );
+            }
+        }
+    }
+
+    class Vis {
+        constructor(net) {
+            this.net = net;
+            this.el = document.getElementById("net");
+            this.nodes = [];
+        }
+
+        init() {
+            this.el.innerHTML = "";
+            this.nodes = [];
+
+            for (let i = 0; i < this.net.layers.length; i++) {
+
+                const div = document.createElement("div");
+                div.className = "layer";
+
+                const size =
+                    i === 0
+                        ? this.net.layers[0].W.cols
+                        : this.net.layers[i].W.rows;
+
+                const arr = [];
+
+                for (let j = 0; j < size; j++) {
+                    const n = document.createElement("div");
+                    n.className = "neuron";
+                    div.appendChild(n);
+                    arr.push(n);
+                }
+
+                this.nodes.push(arr);
+                this.el.appendChild(div);
+            }
+        }
+
+        drawForward() {
+            for (let i = 0; i < this.net.layers.length; i++) {
+                const L = this.net.layers[i];
+                const vals = L.a?.toArray() || [];
+
+                this.nodes[i].forEach((n, j) => {
+                    const v = vals[j] || 0;
+                    const c = Math.floor(v * 255);
+                    n.style.background = `rgb(${c},${c},255)`;
+                    n.style.transform = `scale(${1 + v})`;
+                    n.textContent = v;
+                });
+            }
+        }
+    }
+
+    const net = new NeuralNetwork(2, [4], 2);
+    const vis = new Vis(net);
+    vis.init();
+
+    const data = [
+        {x: [0, 0], y: [1, 0]},
+        {x: [0, 1], y: [0, 1]},
+        {x: [1, 0], y: [0, 1]},
+        {x: [1, 1], y: [1, 0]}
+    ];
+
+    function trainStep() {
+        const d = data[Math.floor(Math.random() * data.length)];
+
+        net.forward(d.x);
+        net.backward(d.y);
+        net.update(0.1);
+
+        vis.drawForward();
+    }
+
+    function runForward() {
+        const d = data[0];
+        net.forward(d.x);
+        vis.drawForward();
+    }
+</script>
+
+</body>
+</html>
