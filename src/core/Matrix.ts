@@ -1,6 +1,7 @@
 import {Vector} from "./Vector";
 import assert from "../assert/assert";
 import {Tensor} from "./Tensor";
+import transpose from "../math/transpose";
 
 // 2d array
 export class Matrix {
@@ -288,6 +289,24 @@ export class Matrix {
         }
 
         return m;
+    }
+
+    matmul(other: Matrix): Matrix {
+        const result = new Matrix(this.rows, other.columns);
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < other.columns; j++) {
+                let sum = 0;
+                for (let k = 0; k < this.columns; k++) {
+                    sum += this.get(i, k) * other.get(k, j);
+                }
+                result.set(i, j, sum);
+            }
+        }
+        return result;
+    }
+
+    transpose() {
+        return transpose(this)
     }
 
 }
