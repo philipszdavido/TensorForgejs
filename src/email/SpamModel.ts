@@ -2,6 +2,8 @@ import {TextFeatures, VocabTextCleaner} from "../vocab/VocabTokenizer";
 import {VocabularyMap} from "../vocab/VocabularyMap";
 import {EmbeddingLayer} from "../vocab/EmbeddingLayer";
 import {NeuralNetworkDense} from "../models/neural/dense/NeuralNetworkDense";
+import {ModelState, SequentialModel} from "../api/Sequential";
+import {ActivationEnum, LossEnum} from "../models";
 
 export class SpamModel {
 
@@ -152,4 +154,70 @@ export class SpamModel {
 
         return gradOut;
     }
+
+    static prepModel(modelState: ModelState) {
+
+        const embedding = new EmbeddingLayer(modelState.embedding!.vocabSize, modelState.embedding!.dim);
+        embedding.setW(modelState.embedding!.data)
+
+        const vocab = new VocabularyMap();
+        vocab.setVocab(modelState.vocabularyMap!.vocab)
+        vocab.setFreq(modelState.vocabularyMap!.frequency);
+
+        const cleaner = new VocabTextCleaner();
+        const seq = new SequentialModel(modelState)
+        const network = seq.getPipeLine(0) as NeuralNetworkDense
+
+
+        return new SpamModel(cleaner, vocab, embedding, network, modelState.embedding!.dim);
+
+    }
+
+    generateModel() {
+
+        const modelState: ModelState = {
+            weights: {
+                convWeights: [],
+                denseWeights: this.network.getWeights(),
+            },
+            architecture: [
+                {
+                    type: "Dense", layers: [
+                        {
+                            inputSize: this.network.denseLayers[0].inputSize,
+                            outputSize: 32,
+                            activation: ActivationEnum.relu
+                        },
+                        {inputSize: 32, outputSize: 1, activation: ActivationEnum.sigmoid}
+                    ]
+                }
+            ],
+            embedding: {
+                data: this.embedding.getW(),
+                vocabSize: this.vocab.size(),
+                dim: this.embedDim
+            },
+            vocabularyMap: {
+                frequency: (() => {
+                    const freq: Record<string, number> = {}
+                    this.vocab.getFreq().forEach((v, k) => {
+                        freq[k] = v;
+                    })
+                    return freq;
+                })(),
+                vocab: (() => {
+                    const vocab: Record<string, number> = {}
+                    this.vocab.getVocab().forEach((v, k) => {
+                        vocab[k] = v;
+                    })
+                    return vocab;
+                })()
+            },
+            loss: LossEnum.bce
+        };
+
+        return modelState;
+
+    }
+
 }
