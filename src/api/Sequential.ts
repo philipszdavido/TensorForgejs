@@ -34,14 +34,23 @@ type Dense = {
     ]
 }
 
-export type Layer = Convo2DLayer | ReLU2DLayer | MaxPooling2DLayer | FlattenLayer | Dense;
+export type SequentialLayer = Convo2DLayer | ReLU2DLayer | MaxPooling2DLayer | FlattenLayer | Dense;
 
 export type ModelState = {
     weights: {
         convWeights: number[][][],
         denseWeights: { layerIndex: number, weights: number[][], biases: number[] }[],
     },
-    architecture: Array<Layer>,
+    architecture: Array<SequentialLayer>,
+    embedding?: {
+        data: Float32Array<ArrayBufferLike>,
+        vocabSize: number,
+        dim: number,
+    },
+    vocabularyMap?: {
+        frequency: { [key: string]: number },
+        vocab: { [key: string]: number },
+    },
     loss: LossEnum
 };
 
@@ -55,7 +64,7 @@ export class SequentialModel {
     private loadAndBuildModel(rawData: ModelState) {
         const {architecture, weights} = rawData;
 
-        architecture.forEach((layerConf: Layer) => {
+        architecture.forEach((layerConf: SequentialLayer) => {
             switch (layerConf.type) {
                 case 'Convo2D':
                     const convo2DFilters = new Array(layerConf.filters).fill(Matrix.random(layerConf.kernelSize, layerConf.kernelSize))
@@ -92,7 +101,7 @@ export class SequentialModel {
                     break;
 
                 default:
-                    throw new Error(`Unknown layer type in config: ${(layerConf as Layer).type}`);
+                    throw new Error(`Unknown layer type in config: ${(layerConf as SequentialLayer).type}`);
             }
         });
         console.log(`Successfully built model with ${this.pipeline.length} layers dynamic pipeline.`);
@@ -115,6 +124,10 @@ export class SequentialModel {
         }
 
         return currentOutput.toArray();
+    }
+
+    public getPipeLine(index: number) {
+        return this.pipeline[index];
     }
 
 }
