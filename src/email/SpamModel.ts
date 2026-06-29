@@ -161,8 +161,8 @@ export class SpamModel {
         embedding.setW(modelState.embedding!.data)
 
         const vocab = new VocabularyMap();
-        vocab.setVocab(modelState.vocabularyMap!.vocab)
-        vocab.setFreq(modelState.vocabularyMap!.frequency);
+        vocab.setVocab(modelState.vocabulary!.vocab)
+        vocab.setFreq(modelState.vocabulary!.frequency);
 
         const cleaner = new VocabTextCleaner();
         const seq = new SequentialModel(modelState)
@@ -197,7 +197,7 @@ export class SpamModel {
                 vocabSize: this.vocab.size(),
                 dim: this.embedDim
             },
-            vocabularyMap: {
+            vocabulary: {
                 frequency: (() => {
                     const freq: Record<string, number> = {}
                     this.vocab.getFreq().forEach((v, k) => {

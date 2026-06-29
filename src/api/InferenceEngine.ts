@@ -9,9 +9,9 @@ export type Activation = {
     initializer(inputs: number): number;
 };
 
-export type Input = { size: number; };
-export type Hidden = { size: number; activation: ActivationEnum; };
-export type Output = { size: number; activation: ActivationEnum; };
+export type InferenceInput = { size: number; };
+export type InferenceHidden = { size: number; activation: ActivationEnum; };
+export type InferenceOutput = { size: number; activation: ActivationEnum; };
 
 export type Layer = {
     weight: Matrix;
@@ -23,9 +23,9 @@ export interface ModelPayload {
     weights: number[][][];
     biases: number[][];
     architecture: {
-        input: Input;
-        hidden: Hidden[];
-        output: Output;
+        input: InferenceInput;
+        hidden: InferenceHidden[];
+        output: InferenceOutput;
     };
 }
 
