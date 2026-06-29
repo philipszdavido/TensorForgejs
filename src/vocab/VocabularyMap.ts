@@ -104,4 +104,20 @@ export class VocabularyMap {
         return this.vocab.size;
     }
 
+    setVocab(vocab: { [key: string]: number }) {
+        this.vocab.clear();
+
+        for (const [key, value] of Object.entries(vocab)) {
+            this.vocab.set(key, value);
+        }
+    }
+
+    setFreq(freq: { [key: string]: number }) {
+        this.freq.clear();
+
+        for (const [key, value] of Object.entries(freq)) {
+            this.freq.set(key, value);
+        }
+    }
+
 }
