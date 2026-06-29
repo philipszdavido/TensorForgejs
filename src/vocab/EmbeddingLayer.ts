@@ -1,10 +1,10 @@
 export class EmbeddingLayer {
 
-    private W: Float32Array;
+    private readonly W: Float32Array;
     private vocabSize: number;
-    private dim: number;
+    private readonly dim: number;
 
-    private dW: Float32Array;
+    private readonly dW: Float32Array;
 
     constructor(vocabSize: number, dim: number) {
         this.vocabSize = vocabSize;
@@ -60,6 +60,16 @@ export class EmbeddingLayer {
         for (let i = 0; i < this.W.length; i++) {
             this.W[i] -= lr * this.dW[i];
             this.dW[i] = 0;
+        }
+    }
+
+    public getW() {
+        return this.W
+    }
+
+    setW(w:  Float32Array<ArrayBufferLike>) {
+        for (let i = 0; i < this.W.length; i++) {
+            this.W[i] = w[i];
         }
     }
 }
