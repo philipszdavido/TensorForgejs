@@ -47,7 +47,7 @@ export type ModelState = {
         vocabSize: number,
         dim: number,
     },
-    vocabularyMap?: {
+    vocabulary?: {
         frequency: { [key: string]: number },
         vocab: { [key: string]: number },
     },
