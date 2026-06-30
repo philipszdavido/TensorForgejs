@@ -30,7 +30,7 @@ export class NeuralNetworkDense implements LayerInterface {
 
         const Y: Vector = Vector.from(y);
 
-        let delta!: Vector;
+        let delta: Vector;
 
         if (this.loss instanceof SoftmaxCrossEntropy) {
             delta = this.loss.fusedGradient(Y);
@@ -46,10 +46,12 @@ export class NeuralNetworkDense implements LayerInterface {
 
         for (let i = this.denseLayers.length - 1; i >= 0; i--) {
             const denseLayer = this.denseLayers[i];
-            const prevLayer = this.denseLayers[i - 1]
             const dA = denseLayer.backward(delta);
 
             if (i > 0) {
+
+                const prevLayer = this.denseLayers[i - 1]
+
                 delta = Vector.mulVectors(
                     dA,
                     prevLayer.activation.derivative(prevLayer.a!, prevLayer.z!)
