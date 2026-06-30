@@ -29,12 +29,6 @@ export default class DenseLayer implements LayerInterface {
     l1?: Vector; // L1 Regularization
     l2?: Vector; // L2 Regularization
 
-    cache: {
-        input: Vector;
-        z: Vector;
-        a: Vector;
-    }[] = [];
-
     constructor(public readonly inputSize: number, public readonly outputSize: number, public readonly actEnum: ActivationEnum) {
 
         this.activation = ActivationUse[actEnum]
@@ -66,19 +60,13 @@ export default class DenseLayer implements LayerInterface {
 
         a = this.a;
 
-        this.cache.push({
-            input: Vector.from(input),
-            z: Vector.from(zWithBias.toArray()),
-            a: Vector.from(this.a.toArray())
-        });
-
         return a;
 
     }
 
     backward(delta: Vector) {
 
-        this.dB = Vector.addVectors(Vector.from(delta.toArray()), this.dB);
+        this.dB = Vector.addVectors(delta, this.dB);
 
         this.dW = Matrix.add(this.dW, Matrix.outerProduct(delta, this!.input!));
 
@@ -86,30 +74,6 @@ export default class DenseLayer implements LayerInterface {
         const WT = transpose(this.weight);
         return Matrix.matrixMulVector(WT, delta)
 
-    }
-
-    backwardT(delta: Vector, t: number) {
-
-        const cache = this.cache[t];
-
-        const localDelta = Vector.mulVectors(
-            delta,
-            this.activation.derivative(cache.z, cache.a)
-        );
-
-        this.dB = Vector.addVectors(
-            this.dB,
-            localDelta
-        );
-
-        this.dW = Matrix.add(
-            this.dW,
-            Matrix.outerProduct(localDelta, cache.input)
-        );
-
-        const WT = transpose(this.weight);
-
-        return Matrix.matrixMulVector(WT, localDelta);
     }
 
     updateWeights(learningRate: number) {
