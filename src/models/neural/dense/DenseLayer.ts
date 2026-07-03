@@ -66,12 +66,16 @@ export default class DenseLayer implements LayerInterface {
 
     backward(delta: Vector) {
 
+        // dBiases = dZ
         this.dB = Vector.addVectors(delta, this.dB);
 
+        // dWeights = input * dZ
         this.dW = Matrix.add(this.dW, Matrix.outerProduct(delta, this!.input!));
 
 
         const WT = transpose(this.weight);
+
+        // dInput = W * dZ
         return Matrix.matrixMulVector(WT, delta)
 
     }

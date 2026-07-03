@@ -40,6 +40,7 @@ export class NeuralNetworkDense implements LayerInterface {
             const Predicted = output.a!;
             const lossGrad = (this.loss as LossFunction).gradient(Y, Predicted);
 
+            // dZ = dOutput ⊙ activation'(z)
             delta = Vector.mulVectors(lossGrad, output.activation.derivative(output.z!, output.a!));
 
         }
