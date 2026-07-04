@@ -20,6 +20,11 @@ export class NeuralNetworkDense implements LayerInterface {
             a = denseLayer.forward(a.toArray());
         }
 
+        // TODO: check if this is right to implement for softmax cross entropy
+        if (this.loss instanceof SoftmaxCrossEntropy) {
+            a = this.loss.forward(a);
+        }
+
         return a;
 
     }
