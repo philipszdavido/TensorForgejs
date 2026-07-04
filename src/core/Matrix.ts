@@ -309,4 +309,19 @@ export class Matrix {
         return transpose(this)
     }
 
+    addAt(r: number, c: number, val: number) {
+        const idx = r * this.columns + c;
+        this.data[idx] += val;
+    }
+
+    static map(m: Matrix, callback: (v: number) => number): Matrix {
+        const result = Matrix.zeros(m.rows, m.columns);
+        for (let r = 0; r < m.rows; r++) {
+            for (let c = 0; c < m.columns; c++) {
+                result.set(r, c, callback(m.get(r, c)));
+            }
+        }
+        return result;
+    }
+
 }
