@@ -1,10 +1,8 @@
 import {Activation, ActivationEnum, ActivationUse, LayerInterface, LossFunction} from "../Types";
 import {Vector} from "../../../core/Vector";
-import {NeuralNetworkDense} from "../dense/NeuralNetworkDense";
 import {Matrix} from "../../../core/Matrix";
 import transpose from "../../../math/transpose";
 import DenseLayer from "../dense/DenseLayer";
-import {zerosMat} from "../../../gemini_rnn/matrix";
 
 // [h(t−1), x(t)]
 // │
@@ -27,7 +25,7 @@ export class RNN {
 
     private outputs: Vector[] = [];
     private T: number = 0;
-    private embedding: Matrix;
+    private embedding: Embedding;
 
     constructor(
         public readonly neuralNetwork: NeuralNetworkDenseRNN,
@@ -36,52 +34,49 @@ export class RNN {
         public embedDim: number,
         public readonly vocabSize: number
     ) {
-        this.embedding = Matrix.zeros(vocabSize, embedDim);
+        this.embedding = new Embedding(vocabSize, embedDim);
     }
 
-    forward(inputSeq: number[][]) {
+    forward(inputSeq: number[]) {
 
         this.outputs = [];
         this.T = inputSeq.length
-        console.log(inputSeq)
+
         this.clearCache();
 
         for (let i = 0; i < inputSeq.length; i++) {
 
             let input = inputSeq[i];
-
-            //const e = this.embedding.getRow(input);
+            let inputVec = this.embedding.forward(input).toArray();
 
             for (let j = 0; j < this.rnns.length; j++) {
-                const h = this.rnns[j].forward(input, i == 0 ? this.rnns[j].h0 : this.rnns[j].cache[i - 1].h, i);
-                input = h.toArray()
+                const h = this.rnns[j].forward(inputVec, i == 0 ? this.rnns[j].h0 : this.rnns[j].cache[i - 1].h, i);
+                inputVec = h.toArray()
             }
 
-            const out = this.neuralNetwork.forward(input, i);
+            const out = this.neuralNetwork.forward(inputVec, i);
 
             this.outputs.push(Vector.from(out.toArray()));
 
         }
 
         for (const layer of this.rnns) {
-            layer.h0 = layer.cache[this.T - 1].h;
+            layer.h0 = Vector.from(
+                layer.cache[this.T - 1].h.toArray()
+            );
         }
 
         return this.outputs;
 
     }
 
-    backward(labels: number[][]) {
+    backward(labels: number[], inputIndices: number[]) {
 
         let dFuture = this.rnns.map(rnn => Vector.zeros(rnn.hiddenSize));
 
         for (let t = this.T - 1; t >= 0; t--) {
 
-            // const dy = this.outputs[t].toArray()
-            // dy[labels[t][0]] -= 1;
-
-            // let outputGrad = this.softmax.fusedGradient(Vector.from(labels[t]), t);
-            let outputGrad = this.neuralNetwork.backward(labels[t], t);
+            let outputGrad = this.neuralNetwork.backward([labels[t]], t);
 
             for (let j = this.rnns.length - 1; j >= 0; j--) {
 
@@ -90,8 +85,6 @@ export class RNN {
                 for (const row of this.rnns[j].dWhh.toNestedArray())
                     for (const x of row)
                         max = Math.max(max, Math.abs(x));
-
-                // console.log(max);
 
                 let rnnGrad = Vector.addVectors(dFuture[j], outputGrad);
 
@@ -103,6 +96,7 @@ export class RNN {
 
             }
 
+            this.embedding.backward(inputIndices[t], outputGrad);
         }
 
     }
@@ -119,6 +113,7 @@ export class RNN {
         }
 
         this.neuralNetwork.update(lr);
+        this.embedding.update(lr);
     }
 
     resetState() {
@@ -132,6 +127,7 @@ export class RNN {
         return {
             rnns: this.rnns.map(r => r.getWeights()),
             head: this.neuralNetwork.getWeights(),
+            embedding: this.embedding.getWeights(),
         };
     }
 
@@ -153,6 +149,8 @@ export class RNN {
         });
 
         this.neuralNetwork.setWeights(weights.head);
+
+        this.embedding.setWeights(weights.embedding);
 
         this.resetState();
     }
@@ -267,7 +265,7 @@ export class RNNLayer {
 
     }
 
-    initializeWeights(
+    initializeWeightsV1(
         outputs: number,
         inputs: number,
         activation: Activation
@@ -291,6 +289,18 @@ export class RNNLayer {
         return W;
     }
 
+    initializeWeights(outputs: number, inputs: number, activation: Activation): Matrix {
+        const scale = Math.sqrt(2 / (inputs + outputs));
+        const W = Matrix.zeros(outputs, inputs);
+
+        for (let r = 0; r < outputs; r++) {
+            for (let c = 0; c < inputs; c++) {
+                const val = (Math.random() * 2 - 1) * scale;
+                W.set(r, c, val);
+            }
+        }
+        return W;
+    }
 
     getWeights() {
         return {Wxh: this.Wxh.toNestedArray(), Whh: this.Whh.toNestedArray(), b: this.b.toArray()};
@@ -304,7 +314,6 @@ export class RNNLayer {
 
     loadWeights(weights: { Wxh: number[][]; Whh: number[][]; b: number[] }) {
 
-        // Validate Wxh
         if (
             weights.Wxh.length !== this.hiddenSize ||
             weights.Wxh.some(row => row.length !== this.inputSize)
@@ -314,7 +323,6 @@ export class RNNLayer {
             );
         }
 
-        // Validate Whh
         if (
             weights.Whh.length !== this.hiddenSize ||
             weights.Whh.some(row => row.length !== this.hiddenSize)
@@ -324,7 +332,6 @@ export class RNNLayer {
             );
         }
 
-        // Validate bias
         if (weights.b.length !== this.hiddenSize) {
             throw new Error(
                 `Invalid bias size. Expected ${this.hiddenSize}`
@@ -335,12 +342,10 @@ export class RNNLayer {
         this.Whh = Matrix.from(weights.Whh);
         this.b = Vector.from(weights.b);
 
-        // Clear accumulated gradients
         this.dWxh = Matrix.zeros(this.hiddenSize, this.inputSize);
         this.dWhh = Matrix.zeros(this.hiddenSize, this.hiddenSize);
         this.dB = Vector.zeros(this.hiddenSize);
 
-        // Reset hidden state and cache
         this.h0 = Vector.zeros(this.hiddenSize);
         this.cache = [];
     }
@@ -363,7 +368,7 @@ export class SoftmaxCrossEntropy {
         return this.predictions[t];
     }
 
-    loss(y: Vector, pred: Vector): number {
+    loss_(y: Vector, pred: Vector): number {
         const yArr = y.toArray();
         const predArr = pred.toArray();
         let totalLoss = 0;
@@ -375,7 +380,15 @@ export class SoftmaxCrossEntropy {
         return totalLoss;
     }
 
-    fusedGradient(y: Vector, t: number): Vector {
+    loss(targetIndex: number, pred: Vector) {
+
+        return -Math.log(
+            pred.get(targetIndex) + 1e-15
+        );
+
+    }
+
+    fusedGradient_(y: Vector, t: number): Vector {
 
         const predArr = this.predictions[t].toArray();
         const yArr = y.toArray();
@@ -383,6 +396,14 @@ export class SoftmaxCrossEntropy {
         const gradientData = predArr.map((pred, i) => pred - yArr[i]);
 
         return Vector.from(gradientData);
+    }
+
+    fusedGradient(target: number, t: number): Vector {
+        const grad = Vector.from(this.predictions[t].toArray());
+
+        grad.set(target, grad.get(target) - 1);
+
+        return grad;
     }
 
     zero() {
@@ -423,7 +444,7 @@ export class NeuralNetworkDenseRNN {
         let delta: Vector;
 
         if (this.loss instanceof SoftmaxCrossEntropy) {
-            delta = this.loss.fusedGradient(Y, t);
+            delta = this.loss.fusedGradient(y[0], t);
         } else {
 
             // get the output error
@@ -494,5 +515,38 @@ export class NeuralNetworkDenseRNN {
         if (this.loss instanceof SoftmaxCrossEntropy) {
             this.loss.zero()
         }
+    }
+}
+
+export class Embedding {
+    public weights: Matrix;
+    public dWeights: Matrix;
+
+    constructor(public vocabSize: number, public embedDim: number) {
+        this.weights = Matrix.multiplyScalar(Matrix.random(vocabSize, embedDim), Math.sqrt(1 / embedDim));
+        this.dWeights = Matrix.zeros(vocabSize, embedDim);
+    }
+
+    forward(index: number): Vector {
+        return Vector.from([...this.weights.getRow(index)]);
+    }
+
+    backward(index: number, grad: Vector) {
+        for (let i = 0; i < grad.length; i++) {
+            this.dWeights.addAt(index, i, grad.get(i));
+        }
+    }
+
+    update(lr: number) {
+        this.weights = Matrix.sub(this.weights, Matrix.multiplyScalar(this.dWeights, lr));
+        this.dWeights = Matrix.zeros(this.weights.rows, this.weights.columns);
+    }
+
+    getWeights() {
+        return this.weights.toNestedArray();
+    }
+
+    setWeights(savedLayers: number[][]) {
+        this.weights = Matrix.from(savedLayers)
     }
 }
