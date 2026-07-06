@@ -4,6 +4,70 @@ import {EmbeddingLayer} from "../vocab/EmbeddingLayer";
 import {NeuralNetworkDense} from "../models/neural/dense/NeuralNetworkDense";
 import {ModelState, SequentialModel} from "../api/Sequential";
 import {ActivationEnum, LossEnum} from "../models";
+import {SpamAttention} from "./SpamAttention";
+import softmax from "../math/softmax";
+
+// @Todo: check for
+// a memory leak,
+// growing arrays that are never cleared
+// accumulating gradients instead of resetting them
+// excessive garbage collection
+// storing intermediate values from every forward pass.
+
+// Use average + max pooling
+// compute both mean and max over the embeddings and concatenate them:
+//     Embedding Sequence
+//
+//       │
+//
+// Mean Pool      Max Pool
+//       │            │
+// └──────┬─────┘
+// │
+//       Concatenate
+//              │
+//       Dense Network
+
+// Embedding
+//       │
+// ▼
+// X (T × D)
+// │
+// ▼
+// Attention scores = XW
+//       │
+// ▼
+// Softmax
+//       │
+// ▼
+// Attention weights α
+//       │
+// ▼
+// Weighted Sum
+//       │
+// ▼
+// Dense Network
+//       │
+// ▼
+// Loss
+
+// Backprop:
+// Loss
+//  │
+// ▼
+// Dense backward
+//  │
+// ▼
+// Weighted Sum backward
+//  │
+// ▼
+// Softmax backward
+//  │
+// ▼
+// Attention backward
+//  │
+// ▼
+// Embedding backward
 
 export class SpamModel {
 
@@ -12,7 +76,8 @@ export class SpamModel {
         private vocab: VocabularyMap,
         private embedding: EmbeddingLayer,
         private network: NeuralNetworkDense,
-        private embedDim: number
+        private embedDim: number,
+        private attention: SpamAttention
     ) {
     }
 
@@ -23,7 +88,12 @@ export class SpamModel {
         const tokenIds = this.vocab.encode(f.text);
 
         const embSeq = this.embedding.forward(tokenIds);
-        const pooled = this.meanPool(embSeq, this.embedDim);
+        const attentionSeq = this.attention.forward(embSeq);
+
+        const scores = softmax([...attentionSeq]);
+
+        // we will mean pool scores
+        const pooled = this.meanPoolScores(scores, embSeq, this.embedDim)
 
         const combinedInput = new Float32Array(this.embedDim + featureVec.length);
         combinedInput.set(pooled, 0);
@@ -41,7 +111,15 @@ export class SpamModel {
         if (tokenIds.length === 0) return;
 
         const embSeq = this.embedding.forward(tokenIds);
-        const pooled = this.meanPool(embSeq, this.embedDim);
+
+        // Attention = Embedding * Weight
+        const attentionScoresSeq = this.attention.forward(embSeq);
+
+        // Scores = softmax(Attention)
+        const alphas = softmax([...attentionScoresSeq]);
+
+        // we will mean pool scores
+        const pooled = this.meanPoolScores(alphas, embSeq, this.embedDim)
 
         const combinedInput = new Float32Array(this.embedDim + featureVec.length);
         combinedInput.set(pooled, 0);
@@ -54,11 +132,40 @@ export class SpamModel {
 
         const embeddingGrads = denseInputGrad.subarray(0, this.embedDim);
 
-        const gradToEmbedding = this.meanPoolBackward(embeddingGrads, tokenIds.length, this.embedDim);
-        this.embedding.backward(tokenIds, gradToEmbedding);
+        // dL/dalphas = gradAlphas = dL/dpool * dpool/dalphas
+        // dL/dpool = embeddingGrads
+        // dL/dalphas = gradAlphas = embeddingGrads * dpool/dalphas
+        // pool = alphas * embedding
+        // dpool/daplhas = embedding
+        // dL/dalphas = embeddingGrads * embedding
+        const {
+            meanPoolGradEmbedding,
+            gradAlphas
+        } = this.meanPoolScoresBackward(embeddingGrads, tokenIds.length, this.embedDim, alphas, embSeq);
+
+        // dL/dscores = dL/dalphas * dalphas/dscores
+        // alphas = softmax(scores)
+        // dalphas/dscores = softmax_derivative()
+        // dL/dscores = gradAlphas * softmax_derivative
+
+        // calc softmax backward
+        const gradScores = this.softmaxBackward(gradAlphas, alphas)
+
+        // Attention scores = Embedding * Weight
+        // get grad embeddings and grad weight
+        // dL/dembeddings = dL/dscores * dscores/dembeddings
+        // dscores/dembeddings = weight
+        // dL/dembeddings = dL/dscores * weight
+        // dL/dweight = dL/dscores * dscores/dweight
+        // = dL/dscores * embedding
+        const gradEmbeddingsFromScores = this.attention.backward(gradScores/*, embSeq*/);
+
+        this.embedding.backward(tokenIds, gradEmbeddingsFromScores.map((v, i) => meanPoolGradEmbedding[i] + v));
 
         this.network.update(lr);
         this.embedding.update(lr);
+        this.attention.update(lr);
+
     }
 
     private normalizeFeatures(f: TextFeatures): number[] {
@@ -74,85 +181,45 @@ export class SpamModel {
         ];
     }
 
-    private _meanPool(x: Float32Array, dim: number): number[] {
+    meanPoolScores(alphas: number[], embSeq: Float32Array, dim: number) {
 
-        if (x.length === 0) {
-            return new Array(dim).fill(0);
-        }
-
-        const steps = x.length / dim;
-        const out = new Array(dim).fill(0);
-
-        for (let i = 0; i < steps; i++) {
-            for (let d = 0; d < dim; d++) {
-                out[d] += x[i * dim + d];
-            }
-        }
-
-        for (let d = 0; d < dim; d++) {
-            out[d] /= steps || 1;
-        }
-
-        return out;
-    }
-
-    private bceGrad(pred: number, label: number): number {
-        const eps = 1e-7;
-        const p = Math.min(Math.max(pred, eps), 1 - eps);
-        return -(label / p) + (1 - label) / (1 - p);
-    }
-
-    private expandGrad(
-        grad: number[],
-        seqLen: number,
-        dim: number
-    ): Float32Array {
-
-        const out = new Float32Array(seqLen * dim);
-
-        for (let i = 0; i < seqLen; i++) {
-            for (let d = 0; d < dim; d++) {
-                out[i * dim + d] = grad[d] / seqLen;
-            }
-        }
-
-        return out;
-    }
-
-    public meanPool(embSeq: Float32Array, dim: number): Float32Array {
-        const pooled = new Float32Array(dim);
         const numTokens = embSeq.length / dim;
-
-        if (numTokens === 0) return pooled;
+        const result: Float32Array<ArrayBufferLike> = new Float32Array(dim);
 
         for (let t = 0; t < numTokens; t++) {
+
             const offset = t * dim;
+
             for (let d = 0; d < dim; d++) {
-                pooled[d] += embSeq[offset + d];
+                result[d] += alphas[t] * embSeq[offset + d];
             }
+
         }
 
-        for (let d = 0; d < dim; d++) {
-            pooled[d] /= numTokens;
-        }
-
-        return pooled;
+        return result;
     }
 
-    public meanPoolBackward(gradFromDense: Float32Array, numTokens: number, dim: number): Float32Array {
+    meanPoolScoresBackward(gradFromDense: Float32Array, numTokens: number, dim: number, alphas: number[], embSeq: Float32Array) {
 
+        // calc embedding grad
         const gradOut = new Float32Array(numTokens * dim);
 
-        if (numTokens === 0) return gradOut;
+        // calc grad alphas
+        // grad_alphas = grad_from_dense * embedding
+        const gradAlphas = new Float32Array(alphas.length);
 
         for (let t = 0; t < numTokens; t++) {
             const offset = t * dim;
+
             for (let d = 0; d < dim; d++) {
-                gradOut[offset + d] = gradFromDense[d] / numTokens;
+                gradOut[offset + d] = gradFromDense[d] * alphas[t];
+                gradAlphas[t] += gradFromDense[d] * embSeq[offset + d];
             }
+
         }
 
-        return gradOut;
+        return {meanPoolGradEmbedding: gradOut, gradAlphas}
+
     }
 
     static prepModel(modelState: ModelState) {
@@ -168,8 +235,10 @@ export class SpamModel {
         const seq = new SequentialModel(modelState)
         const network = seq.getPipeLine(0) as NeuralNetworkDense
 
+        const attention = new SpamAttention(modelState.embedding!.dim)
 
-        return new SpamModel(cleaner, vocab, embedding, network, modelState.embedding!.dim);
+
+        return new SpamModel(cleaner, vocab, embedding, network, modelState.embedding!.dim, attention);
 
     }
 
@@ -220,4 +289,28 @@ export class SpamModel {
 
     }
 
+    softmaxBackward(
+        gradAlpha: Float32Array,
+        alpha: number[]
+    ): Float32Array {
+
+        const n = alpha.length;
+
+        const gradScores = new Float32Array(n);
+
+        let dot = 0;
+
+        for (let i = 0; i < n; i++) {
+            dot += gradAlpha[i] * alpha[i];
+        }
+
+        for (let i = 0; i < n; i++) {
+            gradScores[i] =
+                alpha[i] * (gradAlpha[i] - dot);
+        }
+
+        return gradScores;
+    }
+
 }
+
