@@ -25,7 +25,7 @@ export class RNN {
 
     private outputs: Vector[] = [];
     private T: number = 0;
-    private embedding: Embedding;
+    public embedding: Embedding;
 
     constructor(
         public readonly neuralNetwork: NeuralNetworkDenseRNN,
@@ -155,6 +155,9 @@ export class RNN {
         this.resetState();
     }
 
+    getEmbeddings() {
+        return this.embedding.getWeights()
+    }
 }
 
 export type CacheLayer = {
@@ -185,9 +188,9 @@ export class RNNLayer {
         this.activation = ActivationUse[actEnum];
 
         this.h0 = Vector.zeros(hiddenSize);
-        this.Whh = this.initializeWeights(hiddenSize, hiddenSize, this.activation);
+        this.Whh = this.initializeWeightsV1(hiddenSize, hiddenSize, this.activation);
 
-        this.Wxh = this.initializeWeights(hiddenSize, inputSize, this.activation);
+        this.Wxh = this.initializeWeightsV1(hiddenSize, inputSize, this.activation);
 
         this.b = Vector.zeros(hiddenSize);
         this.dB = Vector.zeros(hiddenSize);
