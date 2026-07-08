@@ -125,4 +125,26 @@ export class Vector {
 
         return tensor;
     }
+
+    dot(other: Vector): number {
+        return this.data.reduce((sum, val, i) => sum + val * other.data[i], 0);
+    }
+
+    scale(scalar: number): Vector {
+        const data = this.data.map(val => val * scalar)
+        const newVector = new Vector(data.length);
+
+        data.forEach((value, i) => {
+            newVector.set(i, value);
+        })
+
+        return newVector;
+    }
+
+    add(other: Vector): void {
+        for (let i = 0; i < this.data.length; i++) {
+            this.data[i] += other.data[i];
+        }
+    }
+
 }
