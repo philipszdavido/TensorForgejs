@@ -1,9 +1,7 @@
 import {Matrix} from "../../../core/Matrix";
 import {Vector} from "../../../core/Vector";
-import {activate} from "../Tensor/activation";
 import {Tanh} from "../../../math/tanh";
 import {Sigmoid} from "../../../math/sigmoid";
-import {elementwise_multiplication} from "../../../math/vector/sum";
 
 export class LSTM {
 
@@ -22,10 +20,10 @@ export class LSTM {
     Whi: Matrix
     bi: Vector
 
-    c_tilde: Vector
-    Wxc_tilde: Matrix
-    Whc_tilde: Matrix
-    bc_tilde: Vector
+    g: Vector
+    Wxg: Matrix
+    Whg: Matrix
+    bg: Vector
 
     o: Vector;
     Wxo: Matrix
@@ -42,8 +40,8 @@ export class LSTM {
         this.bf = new Vector(hiddenSize);
         this.i = new Vector(hiddenSize);
         this.bi = new Vector(hiddenSize);
-        this.c_tilde = new Vector(hiddenSize);
-        this.bc_tilde = new Vector(hiddenSize);
+        this.g = new Vector(hiddenSize);
+        this.bg = new Vector(hiddenSize);
         this.o = new Vector(hiddenSize);
         this.bo = new Vector(hiddenSize);
 
@@ -51,8 +49,8 @@ export class LSTM {
         this.Whf = Matrix.zeros(hiddenSize, hiddenSize);
         this.Wxi = Matrix.zeros(hiddenSize, inputSize);
         this.Whi = Matrix.zeros(hiddenSize, hiddenSize);
-        this.Wxc_tilde = Matrix.zeros(hiddenSize, inputSize);
-        this.Whc_tilde = Matrix.zeros(hiddenSize, hiddenSize);
+        this.Wxg = Matrix.zeros(hiddenSize, inputSize);
+        this.Whg = Matrix.zeros(hiddenSize, hiddenSize);
         this.Wxo = Matrix.zeros(hiddenSize, inputSize);
         this.Who = Matrix.zeros(hiddenSize, hiddenSize);
 
@@ -69,11 +67,11 @@ export class LSTM {
         const i_t = Sigmoid(Vector.addVectors((Vector.addVectors(Wxi_x, Whi_previous_h)), this.bi));
 
 
-        const Wxc_tilde_x = Matrix.matrixMulVector(this.Wxc_tilde, x)
-        const Whc_tilde_previous_h = Matrix.matrixMulVector(this.Whc_tilde, previous_h)
-        const c_tilde = Tanh(Vector.addVectors(Vector.addVectors(Wxc_tilde_x, Whc_tilde_previous_h), this.bc_tilde))
+        const Wxg_x = Matrix.matrixMulVector(this.Wxg, x)
+        const Whg_previous_h = Matrix.matrixMulVector(this.Whg, previous_h)
+        const g = Tanh(Vector.addVectors(Vector.addVectors(Wxg_x, Whg_previous_h), this.bg))
 
-        const c_t = Vector.addVectors(Vector.mulVectors(f_t, previous_c), Vector.mulVectors(i_t, c_tilde))
+        const c_t = Vector.addVectors(Vector.mulVectors(f_t, previous_c), Vector.mulVectors(i_t, g))
 
         const _ = Vector.addVectors(Matrix.matrixMulVector(this.Wxo, x), Matrix.matrixMulVector(this.Who, previous_h))
         const __ = Vector.addVectors(_, this.bo);
@@ -83,7 +81,7 @@ export class LSTM {
 
         this.f = f_t;
         this.i = i_t;
-        this.c_tilde = c_tilde;
+        this.g = g;
         this.o = o_t;
         this.h = h_t;
         this.c = c_t;
@@ -95,7 +93,48 @@ export class LSTM {
 
     }
 
-    backward() {
+    backward(gradFromUpLayerH: Vector, gradFromUpLayerC: Vector) {
+
+        const dL_dh = gradFromUpLayerH
+
+        const dL_dc = gradFromUpLayerC.
+
+        // dL/dc = dL/dh * dh/dc
+        // = dL/dh * ot (1 - tanh^2(ct))
+        // dL/dh
+        // These are coming in.
+
+        // calc weights grads
+        // Wxf
+        // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
+        // = dL/dc * cprev * ft(1-ft) * xt
+        // Whf
+        // dL/dWhf = dL/dc * dc/df * df/dzf * dzf/dWhf
+        // = dL/dc * cprev * ft(1-ft) * hprev
+
+
+        // Wxi
+        // dL/dWxi = dL/dc * dc/di * di/dzi * dzi/dWxi
+        // = dL/dc * gt * it(1-it) * xt
+        // Whi
+        // dL/dWhi = dL/dc * dc/di * di/dzi * dzi/dWhi
+        // = dL/dc * gt * it(1-it) * hprev
+
+
+        // Wxo
+        // dL/dWxo = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dWxo
+        // = dL/dht * tanh(ct) * ot(1-ot) * xt
+
+        // Who
+        // dL/dWho = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dwho
+        // = dL/dht * tanh(ct) * ot(1-ot) * hprev
+
+        // Wxg
+        // dL/dWxg = dL/dc * dc/dg * dg/dzg * dzg/dWxg
+        // = dL/dc * it * tanh_derivative(zg) * xt
+        // Whg
+        // dL/dWhg = dL/dc * dc/dg * dg/dzg * dzg/dWhg
+        // = dL/dc * it * tanh_derivative(zg) * hprev
 
     }
 
