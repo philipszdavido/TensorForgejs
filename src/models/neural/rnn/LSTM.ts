@@ -2,6 +2,8 @@ import {Matrix} from "../../../core/Matrix";
 import {Vector} from "../../../core/Vector";
 import {Tanh} from "../../../math/tanh";
 import {Sigmoid} from "../../../math/sigmoid";
+import {Pow} from "../../../math/pow";
+import {Scalar} from "../../../core/Scalar";
 
 export class LSTM {
 
@@ -97,7 +99,9 @@ export class LSTM {
 
         const dL_dh = gradFromUpLayerH
 
-        const dL_dc = gradFromUpLayerC.
+        const tanh_sub = Scalar.one.sub(Pow(Tanh(this.c), 2))
+        const dL_dh_o = dL_dh.mulVectors(tanh_sub).mulVectors(this.o)
+        const dL_dc = Vector.addVectors(dL_dh_o, gradFromUpLayerC)
 
         // dL/dc = dL/dh * dh/dc
         // = dL/dh * ot (1 - tanh^2(ct))
@@ -108,33 +112,47 @@ export class LSTM {
         // Wxf
         // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
         // = dL/dc * cprev * ft(1-ft) * xt
+        const dzf = dL_dc.mulVectors(this.previousC).mulVectors(this.f.sub(this.f.mulVectors((this.f))));
+        const dL_dWxf = Matrix.outerProduct(dzf, this.x))
         // Whf
         // dL/dWhf = dL/dc * dc/df * df/dzf * dzf/dWhf
         // = dL/dc * cprev * ft(1-ft) * hprev
+        const dL_dWhf = Matrix.outerProduct(dzf, this.previousH);
 
 
         // Wxi
         // dL/dWxi = dL/dc * dc/di * di/dzi * dzi/dWxi
         // = dL/dc * gt * it(1-it) * xt
+        const dzi = dL_dc.mulVectors(this.g).mulVectors(this.i.mulVectors(Scalar.one.sub(this.i)))
+        const dL_dWxi = Matrix.outerProduct(dzi, this.x)
         // Whi
         // dL/dWhi = dL/dc * dc/di * di/dzi * dzi/dWhi
         // = dL/dc * gt * it(1-it) * hprev
+        const dL_dWhi = Matrix.outerProduct(dzi, this.previousH)
 
 
         // Wxo
         // dL/dWxo = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dWxo
         // = dL/dht * tanh(ct) * ot(1-ot) * xt
+        const dzo = dL_dh.mulVectors(Tanh(this.c)).mulVectors(this.o.mulVectors(Scalar.one.sub(this.o)))
+        const dL_dWxo = Matrix.outerProduct(dzo, this.x)
 
         // Who
         // dL/dWho = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dwho
         // = dL/dht * tanh(ct) * ot(1-ot) * hprev
+        const dL_Who = Matrix.outerProduct(dzo, this.previousH)
 
         // Wxg
         // dL/dWxg = dL/dc * dc/dg * dg/dzg * dzg/dWxg
         // = dL/dc * it * tanh_derivative(zg) * xt
+        const dzg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2)))
+        const dL_dWxg = .mulVectors(this.x)
         // Whg
         // dL/dWhg = dL/dc * dc/dg * dg/dzg * dzg/dWhg
         // = dL/dc * it * tanh_derivative(zg) * hprev
+        const dL_dWhg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2))).mulVectors(this.previousH);
+
+        return {h: this.h, c: this.c}
 
     }
 
