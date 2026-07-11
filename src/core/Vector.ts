@@ -22,6 +22,14 @@ export class Vector {
         return this.data.length;
     }
 
+    static load(data: number[]) {
+        const vec = new Vector(data.length)
+        for (let i = 0; i < data.length; i++) {
+            vec.set(i, data[i]);
+        }
+        return vec
+    }
+
     sum(): number {
 
         let result = 0;
@@ -116,6 +124,10 @@ export class Vector {
         return Vector.from(elementwise_multiplication(vec_a, vec_b))
     }
 
+    mulVectors(vec_b: Vector) {
+        return Vector.from(elementwise_multiplication(this, vec_b))
+    }
+
     toTensor(): Tensor {
         const tensor = new Tensor([1, this.length]);
 
@@ -141,10 +153,40 @@ export class Vector {
         return newVector;
     }
 
-    add(other: Vector): void {
+    add(other: Vector) {
         for (let i = 0; i < this.data.length; i++) {
             this.data[i] += other.data[i];
         }
+        return this
+    }
+
+    sub(other: Vector) {
+        for (let i = 0; i < this.data.length; i++) {
+            this.data[i] -= other.data[i];
+        }
+        return this;
+    }
+
+    zeros() {
+        for (let i = 0; i < this.data.length; i++) {
+            this.data[i] = 0;
+        }
+        return this;
+    }
+
+    mulScalar(scalar: number): Vector {
+        this.data.forEach((val, i) => {
+            const result = val * scalar;
+            this.set(i, result);
+        })
+        return this;
+    }
+
+    fill(number: number) {
+        for (let i = 0; i < this.data.length; i++) {
+            this.data[i] = number;
+        }
+        return this;
     }
 
 }
