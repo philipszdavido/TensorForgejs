@@ -45,6 +45,11 @@ export class Matrix {
         }
     }
 
+    zeros() {
+        this.fill(0)
+        return this;
+    }
+
     static matrixMulVector(m: Matrix, v: Vector): Vector {
         assert(m.columns === v.length, `Shape mismatch: Matrix columns (${m.columns}) must equal Vector length (${v.length})`);
         const result = new Vector(m.rows);
@@ -323,5 +328,49 @@ export class Matrix {
         }
         return result;
     }
+
+    addInPlace(m: Matrix) {
+
+        // @TODO: test this
+        assert(m.columns === this.columns, `Shape mismatch: Matrix columns (${m.columns}) must equal Matrix columns (${this.columns})`);
+
+        for (let r = 0; r < m.rows; r++) {
+            for (let c = 0; c < m.columns; c++) {
+                const dVal = this.get(r, c);
+
+                this.set(r, c, m.get(r, c) + dVal);
+            }
+        }
+
+        return this;
+
+    }
+
+    subInPlace(m: Matrix) {
+        // @TODO: test this
+        assert(m.columns === this.columns, `Shape mismatch: Matrix columns (${m.columns}) must equal Matrix columns (${this.columns})`);
+
+        for (let r = 0; r < m.rows; r++) {
+            for (let c = 0; c < m.columns; c++) {
+                const dVal = this.get(r, c);
+
+                this.set(r, c, dVal - m.get(r, c));
+            }
+        }
+
+        return this;
+
+    }
+
+    multiplyScalar(scalar: number): Matrix {
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.columns; c++) {
+                this.set(r, c, this.get(r, c) * scalar);
+            }
+        }
+
+        return this;
+    }
+
 
 }
