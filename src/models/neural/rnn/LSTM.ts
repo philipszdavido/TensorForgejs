@@ -75,9 +75,10 @@ export class LSTM {
 
         const c_t = Vector.addVectors(Vector.mulVectors(f_t, previous_c), Vector.mulVectors(i_t, g))
 
-        const _ = Vector.addVectors(Matrix.matrixMulVector(this.Wxo, x), Matrix.matrixMulVector(this.Who, previous_h))
-        const __ = Vector.addVectors(_, this.bo);
-        const o_t = Sigmoid(Vector.addVectors(_, __));
+        const Wxo_x = Matrix.matrixMulVector(this.Wxo, x)
+        const Who_previous_h = Matrix.matrixMulVector(this.Who, previous_h)
+        const Wxo_x_Who_previous_h_bo = Wxo_x.add(Who_previous_h).add(this.bo);
+        const o_t = Sigmoid(Wxo_x_Who_previous_h_bo);
 
         const h_t = Vector.mulVectors(o_t, Tanh(c_t))
 
@@ -113,7 +114,7 @@ export class LSTM {
         // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
         // = dL/dc * cprev * ft(1-ft) * xt
         const dzf = dL_dc.mulVectors(this.previousC).mulVectors(this.f.sub(this.f.mulVectors((this.f))));
-        const dL_dWxf = Matrix.outerProduct(dzf, this.x))
+        const dL_dWxf = Matrix.outerProduct(dzf, this.x)
         // Whf
         // dL/dWhf = dL/dc * dc/df * df/dzf * dzf/dWhf
         // = dL/dc * cprev * ft(1-ft) * hprev
@@ -146,13 +147,19 @@ export class LSTM {
         // dL/dWxg = dL/dc * dc/dg * dg/dzg * dzg/dWxg
         // = dL/dc * it * tanh_derivative(zg) * xt
         const dzg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2)))
-        const dL_dWxg = .mulVectors(this.x)
+        const dL_dWxg = Matrix.outerProduct(dzg, this.x)
         // Whg
         // dL/dWhg = dL/dc * dc/dg * dg/dzg * dzg/dWhg
         // = dL/dc * it * tanh_derivative(zg) * hprev
-        const dL_dWhg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2))).mulVectors(this.previousH);
+        const dL_dWhg = Matrix.outerProduct(dzg, this.previousH);
 
-        return {h: this.h, c: this.c}
+        return {
+            h: this.h,
+            c: this.c,
+            dx: Matrix.matrixMulVector(this.Wxf.transpose(), dzf).add(Matrix.matrixMulVector(this.Wxi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Wxg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Wxo.transpose(), dzo)),
+            dhPrev: Matrix.matrixMulVector(this.Whf.transpose(), dzf).add(Matrix.matrixMulVector(this.Whi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Whg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Who.transpose(), dzo)),
+            dcPrev: dL_dc.mulVectors(Tanh(this.f))
+        }
 
     }
 
