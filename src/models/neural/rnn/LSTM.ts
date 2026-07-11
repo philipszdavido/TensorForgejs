@@ -35,11 +35,25 @@ export class LSTM {
     c!: Vector;
     previousH!: Vector;
     previousC!: Vector;
+    private dWxf: Matrix;
+    private dWhf: Matrix;
+    private dWxi: Matrix;
+    private dWhi: Matrix;
+    private dWhg: Matrix;
+    private dWxo: Matrix;
+    private dWho: Matrix;
+    private dWxg: Matrix;
+    private dbf: Vector;
+    private dbi: Vector;
+    private dbg: Vector;
+    private dbo: Vector;
 
     constructor(public inputSize: number, public hiddenSize: number) {
 
         this.x = new Vector(inputSize);
         this.bf = new Vector(hiddenSize);
+        this.bf.fill(1);
+        
         this.i = new Vector(hiddenSize);
         this.bi = new Vector(hiddenSize);
         this.g = new Vector(hiddenSize);
@@ -47,14 +61,28 @@ export class LSTM {
         this.o = new Vector(hiddenSize);
         this.bo = new Vector(hiddenSize);
 
-        this.Wxf = Matrix.zeros(hiddenSize, inputSize);
-        this.Whf = Matrix.zeros(hiddenSize, hiddenSize);
-        this.Wxi = Matrix.zeros(hiddenSize, inputSize);
-        this.Whi = Matrix.zeros(hiddenSize, hiddenSize);
-        this.Wxg = Matrix.zeros(hiddenSize, inputSize);
-        this.Whg = Matrix.zeros(hiddenSize, hiddenSize);
-        this.Wxo = Matrix.zeros(hiddenSize, inputSize);
-        this.Who = Matrix.zeros(hiddenSize, hiddenSize);
+        this.Wxf = Matrix.random(hiddenSize, inputSize);
+        this.Whf = Matrix.random(hiddenSize, hiddenSize);
+        this.Wxi = Matrix.random(hiddenSize, inputSize);
+        this.Whi = Matrix.random(hiddenSize, hiddenSize);
+        this.Wxg = Matrix.random(hiddenSize, inputSize);
+        this.Whg = Matrix.random(hiddenSize, hiddenSize);
+        this.Wxo = Matrix.random(hiddenSize, inputSize);
+        this.Who = Matrix.random(hiddenSize, hiddenSize);
+
+        this.dWxf = Matrix.zeros(hiddenSize, inputSize);
+        this.dWhf = Matrix.zeros(hiddenSize, hiddenSize);
+        this.dWxi = Matrix.zeros(hiddenSize, inputSize);
+        this.dWhi = Matrix.zeros(hiddenSize, hiddenSize);
+        this.dWhg = Matrix.zeros(hiddenSize, hiddenSize);
+        this.dWxo = Matrix.zeros(hiddenSize, inputSize);
+        this.dWho = Matrix.zeros(hiddenSize, hiddenSize);
+        this.dWxg = Matrix.zeros(hiddenSize, inputSize);
+
+        this.dbf = new Vector(hiddenSize);
+        this.dbi = new Vector(hiddenSize);
+        this.dbg = new Vector(hiddenSize);
+        this.dbo = new Vector(hiddenSize);
 
     }
 
@@ -98,9 +126,11 @@ export class LSTM {
 
     backward(gradFromUpLayerH: Vector, gradFromUpLayerC: Vector) {
 
+        const tanhC = Tanh(this.c);
+
         const dL_dh = gradFromUpLayerH
 
-        const tanh_sub = Scalar.one.sub(Pow(Tanh(this.c), 2))
+        const tanh_sub = Scalar.one.sub(Pow(tanhC, 2))
         const dL_dh_o = dL_dh.mulVectors(tanh_sub).mulVectors(this.o)
         const dL_dc = Vector.addVectors(dL_dh_o, gradFromUpLayerC)
 
@@ -114,56 +144,100 @@ export class LSTM {
         // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
         // = dL/dc * cprev * ft(1-ft) * xt
         const dzf = dL_dc.mulVectors(this.previousC).mulVectors(this.f.sub(this.f.mulVectors((this.f))));
-        const dL_dWxf = Matrix.outerProduct(dzf, this.x)
+        const dL_dWxf = Matrix.outerProduct(dzf, this.x);
+        this.dWxf = this.dWxf.addInPlace(dL_dWxf);
         // Whf
         // dL/dWhf = dL/dc * dc/df * df/dzf * dzf/dWhf
         // = dL/dc * cprev * ft(1-ft) * hprev
         const dL_dWhf = Matrix.outerProduct(dzf, this.previousH);
-
+        this.dWhf = this.dWhf.addInPlace(dL_dWhf);
 
         // Wxi
         // dL/dWxi = dL/dc * dc/di * di/dzi * dzi/dWxi
         // = dL/dc * gt * it(1-it) * xt
         const dzi = dL_dc.mulVectors(this.g).mulVectors(this.i.mulVectors(Scalar.one.sub(this.i)))
         const dL_dWxi = Matrix.outerProduct(dzi, this.x)
+        this.dWxi = this.dWxi.addInPlace(dL_dWxi);
         // Whi
         // dL/dWhi = dL/dc * dc/di * di/dzi * dzi/dWhi
         // = dL/dc * gt * it(1-it) * hprev
         const dL_dWhi = Matrix.outerProduct(dzi, this.previousH)
+        this.dWhi = this.dWhi.addInPlace(dL_dWhi)
 
 
         // Wxo
         // dL/dWxo = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dWxo
         // = dL/dht * tanh(ct) * ot(1-ot) * xt
-        const dzo = dL_dh.mulVectors(Tanh(this.c)).mulVectors(this.o.mulVectors(Scalar.one.sub(this.o)))
-        const dL_dWxo = Matrix.outerProduct(dzo, this.x)
+        const dzo = dL_dh.mulVectors(tanhC).mulVectors(this.o.mulVectors(Scalar.one.sub(this.o)))
+        const dL_dWxo = Matrix.outerProduct(dzo, this.x);
+        this.dWxo = this.dWxo.addInPlace(dL_dWxo);
 
         // Who
         // dL/dWho = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dwho
         // = dL/dht * tanh(ct) * ot(1-ot) * hprev
-        const dL_Who = Matrix.outerProduct(dzo, this.previousH)
+        const dL_dWho = Matrix.outerProduct(dzo, this.previousH)
+        this.dWho = this.dWho.addInPlace(dL_dWho)
 
         // Wxg
         // dL/dWxg = dL/dc * dc/dg * dg/dzg * dzg/dWxg
         // = dL/dc * it * tanh_derivative(zg) * xt
         const dzg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2)))
         const dL_dWxg = Matrix.outerProduct(dzg, this.x)
+        this.dWxg = this.dWxg.addInPlace(dL_dWxg)
         // Whg
         // dL/dWhg = dL/dc * dc/dg * dg/dzg * dzg/dWhg
         // = dL/dc * it * tanh_derivative(zg) * hprev
         const dL_dWhg = Matrix.outerProduct(dzg, this.previousH);
+        this.dWhg = this.dWhg.addInPlace(dL_dWhg)
+
+        this.dbf = this.dbf.add(dzf);
+        this.dbi = this.dbi.add(dzi);
+        this.dbg = this.dbg.add(dzg);
+        this.dbo = this.dbo.add(dzo);
 
         return {
-            h: this.h,
-            c: this.c,
             dx: Matrix.matrixMulVector(this.Wxf.transpose(), dzf).add(Matrix.matrixMulVector(this.Wxi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Wxg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Wxo.transpose(), dzo)),
             dhPrev: Matrix.matrixMulVector(this.Whf.transpose(), dzf).add(Matrix.matrixMulVector(this.Whi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Whg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Who.transpose(), dzo)),
-            dcPrev: dL_dc.mulVectors(Tanh(this.f))
+            dcPrev: dL_dc.mulVectors(this.f)
         }
 
     }
 
     update(lr: number) {
+
+        this.Wxf = this.Wxf.subInPlace(this.dWxf.multiplyScalar(lr));
+        this.Whf = this.Whf.subInPlace(this.dWhf.multiplyScalar(lr));
+        this.Wxi = this.Wxi.subInPlace(this.dWxi.multiplyScalar(lr));
+        this.Whi = this.Whi.subInPlace(this.dWhi.multiplyScalar(lr));
+        this.Wxg = this.Wxg.subInPlace(this.dWxg.multiplyScalar(lr));
+        this.Whg = this.Whg.subInPlace(this.dWhg.multiplyScalar(lr));
+        this.Wxo = this.Wxo.subInPlace(this.dWxo.multiplyScalar(lr));
+        this.Who = this.Who.subInPlace(this.dWho.multiplyScalar(lr));
+
+        this.bf = this.bf.sub(this.dbf.mulScalar(lr));
+        this.bi = this.bi.sub(this.dbi.mulScalar(lr));
+        this.bg = this.bg.sub(this.dbg.mulScalar(lr));
+        this.bo = this.bo.sub(this.dbo.mulScalar(lr));
+
+        this.zeroGrad();
+
+    }
+
+    zeroGrad() {
+
+        this.dWxf = this.dWxf.zeros()
+        this.dWhf = this.dWhf.zeros()
+        this.dWxi = this.dWxi.zeros()
+        this.dWhi = this.dWhi.zeros()
+        this.dWxo = this.dWxo.zeros()
+        this.dWho = this.dWho.zeros()
+        this.dWxg = this.dWxg.zeros()
+        this.dWhg = this.dWhg.zeros()
+
+        this.dbf = this.dbf.zeros()
+        this.dbi = this.dbi.zeros();
+        this.dbg = this.dbg.zeros();
+        this.dbo = this.dbo.zeros();
 
     }
 
