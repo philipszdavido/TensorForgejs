@@ -7,6 +7,39 @@ import {Scalar} from "../../../core/Scalar";
 
 export class LSTM {
 
+    constructor(private lstmCells: LSTMCell[]) {
+    }
+
+    forward() {
+
+    }
+
+    backward() {
+    }
+
+}
+
+export type LayerCell = {
+    x: Vector;
+    h: Vector;
+    // hprev: Vector
+    // cprev: Vector;
+
+    f: Vector
+
+    i: Vector;
+
+    g: Vector
+
+    o: Vector;
+
+    c: Vector;
+    previousH: Vector;
+    previousC: Vector;
+};
+
+export class LSTMCell {
+
     x: Vector;
     h!: Vector;
     // hprev: Vector
@@ -48,12 +81,14 @@ export class LSTM {
     private dbg: Vector;
     private dbo: Vector;
 
+    private caches: LayerCell[] = []
+
     constructor(public inputSize: number, public hiddenSize: number) {
 
         this.x = new Vector(inputSize);
         this.bf = new Vector(hiddenSize);
         this.bf.fill(1);
-        
+
         this.i = new Vector(hiddenSize);
         this.bi = new Vector(hiddenSize);
         this.g = new Vector(hiddenSize);
@@ -86,7 +121,7 @@ export class LSTM {
 
     }
 
-    forward(x: Vector, previous_h: Vector, previous_c: Vector) {
+    forward(x: Vector, previous_h: Vector, previous_c: Vector, time: number) {
 
         const Wxf_x = Matrix.matrixMulVector(this.Wxf, x)
         const Whf_previous_h = Matrix.matrixMulVector(this.Whf, previous_h)
@@ -120,18 +155,43 @@ export class LSTM {
         this.previousC = previous_c;
         this.x = x;
 
+        this.caches[time] = {
+            c: c_t,
+            f: f_t,
+            g: g,
+            h: h_t,
+            i: i_t,
+            o: o_t,
+            previousC: previous_c,
+            previousH: previous_h,
+            x: x
+
+        }
+
         return {h_t, c_t}
 
     }
 
-    backward(gradFromUpLayerH: Vector, gradFromUpLayerC: Vector) {
+    backward(time: number, gradFromUpLayerH: Vector, gradFromUpLayerC: Vector) {
 
-        const tanhC = Tanh(this.c);
+        const {
+            c,
+            f,
+            g,
+            h,
+            i,
+            o,
+            previousC,
+            previousH,
+            x
+        } = this.caches[time]
+
+        const tanhC = Tanh(c);
 
         const dL_dh = gradFromUpLayerH
 
         const tanh_sub = Scalar.one.sub(Pow(tanhC, 2))
-        const dL_dh_o = dL_dh.mulVectors(tanh_sub).mulVectors(this.o)
+        const dL_dh_o = dL_dh.mulVectors(tanh_sub).mulVectors(o)
         const dL_dc = Vector.addVectors(dL_dh_o, gradFromUpLayerC)
 
         // dL/dc = dL/dh * dh/dc
@@ -143,51 +203,51 @@ export class LSTM {
         // Wxf
         // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
         // = dL/dc * cprev * ft(1-ft) * xt
-        const dzf = dL_dc.mulVectors(this.previousC).mulVectors(this.f.sub(this.f.mulVectors((this.f))));
-        const dL_dWxf = Matrix.outerProduct(dzf, this.x);
+        const dzf = dL_dc.mulVectors(previousC).mulVectors(f.sub(f.mulVectors((f))));
+        const dL_dWxf = Matrix.outerProduct(dzf, x);
         this.dWxf = this.dWxf.addInPlace(dL_dWxf);
         // Whf
         // dL/dWhf = dL/dc * dc/df * df/dzf * dzf/dWhf
         // = dL/dc * cprev * ft(1-ft) * hprev
-        const dL_dWhf = Matrix.outerProduct(dzf, this.previousH);
+        const dL_dWhf = Matrix.outerProduct(dzf, previousH);
         this.dWhf = this.dWhf.addInPlace(dL_dWhf);
 
         // Wxi
         // dL/dWxi = dL/dc * dc/di * di/dzi * dzi/dWxi
         // = dL/dc * gt * it(1-it) * xt
-        const dzi = dL_dc.mulVectors(this.g).mulVectors(this.i.mulVectors(Scalar.one.sub(this.i)))
-        const dL_dWxi = Matrix.outerProduct(dzi, this.x)
+        const dzi = dL_dc.mulVectors(g).mulVectors(i.mulVectors(Scalar.one.sub(i)))
+        const dL_dWxi = Matrix.outerProduct(dzi, x)
         this.dWxi = this.dWxi.addInPlace(dL_dWxi);
         // Whi
         // dL/dWhi = dL/dc * dc/di * di/dzi * dzi/dWhi
         // = dL/dc * gt * it(1-it) * hprev
-        const dL_dWhi = Matrix.outerProduct(dzi, this.previousH)
+        const dL_dWhi = Matrix.outerProduct(dzi, previousH)
         this.dWhi = this.dWhi.addInPlace(dL_dWhi)
 
 
         // Wxo
         // dL/dWxo = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dWxo
         // = dL/dht * tanh(ct) * ot(1-ot) * xt
-        const dzo = dL_dh.mulVectors(tanhC).mulVectors(this.o.mulVectors(Scalar.one.sub(this.o)))
-        const dL_dWxo = Matrix.outerProduct(dzo, this.x);
+        const dzo = dL_dh.mulVectors(tanhC).mulVectors(o.mulVectors(Scalar.one.sub(o)))
+        const dL_dWxo = Matrix.outerProduct(dzo, x);
         this.dWxo = this.dWxo.addInPlace(dL_dWxo);
 
         // Who
         // dL/dWho = dL/dht * dht/dot * dot/dsigmoid * dsigmoid/dwho
         // = dL/dht * tanh(ct) * ot(1-ot) * hprev
-        const dL_dWho = Matrix.outerProduct(dzo, this.previousH)
+        const dL_dWho = Matrix.outerProduct(dzo, previousH)
         this.dWho = this.dWho.addInPlace(dL_dWho)
 
         // Wxg
         // dL/dWxg = dL/dc * dc/dg * dg/dzg * dzg/dWxg
         // = dL/dc * it * tanh_derivative(zg) * xt
-        const dzg = dL_dc.mulVectors(this.i).mulVectors(Scalar.one.sub(Pow(this.g, 2)))
-        const dL_dWxg = Matrix.outerProduct(dzg, this.x)
+        const dzg = dL_dc.mulVectors(i).mulVectors(Scalar.one.sub(Pow(g, 2)))
+        const dL_dWxg = Matrix.outerProduct(dzg, x)
         this.dWxg = this.dWxg.addInPlace(dL_dWxg)
         // Whg
         // dL/dWhg = dL/dc * dc/dg * dg/dzg * dzg/dWhg
         // = dL/dc * it * tanh_derivative(zg) * hprev
-        const dL_dWhg = Matrix.outerProduct(dzg, this.previousH);
+        const dL_dWhg = Matrix.outerProduct(dzg, previousH);
         this.dWhg = this.dWhg.addInPlace(dL_dWhg)
 
         this.dbf = this.dbf.add(dzf);
