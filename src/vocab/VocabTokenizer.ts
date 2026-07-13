@@ -1,3 +1,14 @@
+// @TODO:
+// add features such as:
+//
+// number of exclamation marks,
+// percentage of digits,
+// number of currency symbols,
+// average word length,
+// message length,
+// number of hyperlinks,
+// ratio of rare words.
+
 export interface TextFeatures {
     text: string;
 
