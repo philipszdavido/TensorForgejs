@@ -4,18 +4,125 @@ import {Tanh} from "../../../math/tanh";
 import {Sigmoid} from "../../../math/sigmoid";
 import {Pow} from "../../../math/pow";
 import {Scalar} from "../../../core/Scalar";
+import {Embedding, NeuralNetworkDenseRNN} from "./RNN";
 
 export class LSTM {
 
-    constructor(private lstmCells: LSTMCell[]) {
+    private T: number = 0;
+    private outputs: Vector[] = [];
+    public embedding: Embedding;
+
+    constructor(
+        public readonly neuralNetwork: NeuralNetworkDenseRNN,
+        private lstmCells: LSTMCell[],
+        private hiddenSize: number,
+        public embedDim: number,
+        public readonly vocabSize: number
+    ) {
+        this.embedding = new Embedding(vocabSize, embedDim);
     }
 
-    forward() {
+    forward(inputSeq: number[]) {
+
+        this.outputs = [];
+        this.T = inputSeq.length
+
+        for (let seqIndex = 0; seqIndex < this.T; ++seqIndex) {
+
+            let input = inputSeq[seqIndex];
+            let inputVec = this.embedding.forward(input);
+
+            for (let i = 0; i < this.lstmCells.length; ++i) {
+
+                const h = i == 0 ? this.lstmCells[i].h0 : this.lstmCells[i].cache[i - 1].h
+                const c = i == 0 ? this.lstmCells[i].c0 : this.lstmCells[i].cache[i - 1].c
+
+                const cell = this.lstmCells[i];
+
+                const output = cell.forward(inputVec, h, c, seqIndex);
+
+                inputVec = output.h_t;
+
+            }
+
+            const out = this.neuralNetwork.forward(inputVec.toArray(), seqIndex);
+
+            this.outputs.push(Vector.from(out.toArray()));
+
+        }
+
+        return this.outputs;
 
     }
 
-    backward() {
+    backward(labels: number[], inputIndices: number[]) {
+
+        let gradH = this.lstmCells.map(() => Vector.load(new Array(this.hiddenSize).fill(0)));
+        let gradC = this.lstmCells.map(() => Vector.zeros(this.hiddenSize));
+
+        for (let t = this.T - 1; t >= 0; t--) {
+
+            let outputGrad = this.neuralNetwork.backward([labels[t]], t);
+
+            for (let i = 0; i < this.lstmCells.length; ++i) {
+
+                const cell = this.lstmCells[i];
+
+                let hGrad = Vector.addVectors(gradH[i], outputGrad);
+                let cGrad = (gradC[i]);
+
+                const grads = cell.backward(t, hGrad, cGrad);
+
+                gradH[i] = grads.dhPrev;
+                gradC[i] = grads.dcPrev;
+
+            }
+
+            this.embedding.backward(inputIndices[t], outputGrad);
+
+        }
+
     }
+
+    update(lr: number) {
+        for (let j = 0; j < this.lstmCells.length; j++) {
+            this.lstmCells[j].update(lr, this.T);
+        }
+
+        this.neuralNetwork.update(lr);
+        this.embedding.update(lr);
+    }
+
+    // getWeights() {
+    //     return {
+    //         rnns: this.lstmCells.map(r => r.getWeights()),
+    //         head: this.neuralNetwork.getWeights(),
+    //         embedding: this.embedding.getWeights(),
+    //     };
+    // }
+    //
+    // loadWeights(weights: ReturnType<LSTMCell["getWeights"]>) {
+    //
+    //     if (weights.rnns.length !== this.rnns.length) {
+    //         throw new Error(
+    //             `Expected ${this.rnns.length} RNN layers but got ${weights.rnns.length}`
+    //         );
+    //     }
+    //
+    //     this.rnns.forEach((layer, i) => {
+    //         layer.loadWeights(weights.rnns[i]);
+    //     });
+    //
+    //     this.neuralNetwork.setWeights(weights.head);
+    //
+    //     this.embedding.setWeights(weights.embedding);
+    //
+    //     this.resetState();
+    // }
+    //
+    // getEmbeddings() {
+    //     return this.embedding.getWeights()
+    // }
 
 }
 
@@ -42,6 +149,10 @@ export class LSTMCell {
 
     x: Vector;
     h!: Vector;
+
+    h0: Vector;
+    c0: Vector;
+
     // hprev: Vector
     // cprev: Vector;
 
@@ -65,9 +176,9 @@ export class LSTMCell {
     Who: Matrix
     bo: Vector
 
-    c!: Vector;
-    previousH!: Vector;
-    previousC!: Vector;
+    c: Vector;
+    previousH: Vector;
+    previousC: Vector;
     private dWxf: Matrix;
     private dWhf: Matrix;
     private dWxi: Matrix;
@@ -81,11 +192,19 @@ export class LSTMCell {
     private dbg: Vector;
     private dbo: Vector;
 
-    private caches: LayerCell[] = []
+    cache: LayerCell[] = []
 
     constructor(public inputSize: number, public hiddenSize: number) {
 
         this.x = new Vector(inputSize);
+
+        this.c = new Vector(hiddenSize);
+        this.previousH = new Vector(hiddenSize);
+        this.previousC = new Vector(hiddenSize);
+
+        this.h0 = new Vector(hiddenSize);
+        this.c0 = new Vector(hiddenSize);
+
         this.bf = new Vector(hiddenSize);
         this.bf.fill(1);
 
@@ -155,7 +274,7 @@ export class LSTMCell {
         this.previousC = previous_c;
         this.x = x;
 
-        this.caches[time] = {
+        this.cache[time] = {
             c: c_t,
             f: f_t,
             g: g,
@@ -165,15 +284,12 @@ export class LSTMCell {
             previousC: previous_c,
             previousH: previous_h,
             x: x
-
         }
-
         return {h_t, c_t}
 
     }
 
     backward(time: number, gradFromUpLayerH: Vector, gradFromUpLayerC: Vector) {
-
         const {
             c,
             f,
@@ -184,7 +300,7 @@ export class LSTMCell {
             previousC,
             previousH,
             x
-        } = this.caches[time]
+        } = this.cache[time]
 
         const tanhC = Tanh(c);
 
@@ -203,7 +319,9 @@ export class LSTMCell {
         // Wxf
         // dL/dWxf = dL/dc * dc/df * df/dzf * dzf/dWxf
         // = dL/dc * cprev * ft(1-ft) * xt
-        const dzf = dL_dc.mulVectors(previousC).mulVectors(f.sub(f.mulVectors((f))));
+        const df_derivative = this.f.mulVectors(Scalar.one.sub(this.f));
+        const dzf = dL_dc.mulVectors(this.previousC).mulVectors(df_derivative);
+        // const dzf = dL_dc.mulVectors(previousC).mulVectors(f.sub(f.mulVectors((f))));
         const dL_dWxf = Matrix.outerProduct(dzf, x);
         this.dWxf = this.dWxf.addInPlace(dL_dWxf);
         // Whf
@@ -258,12 +376,14 @@ export class LSTMCell {
         return {
             dx: Matrix.matrixMulVector(this.Wxf.transpose(), dzf).add(Matrix.matrixMulVector(this.Wxi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Wxg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Wxo.transpose(), dzo)),
             dhPrev: Matrix.matrixMulVector(this.Whf.transpose(), dzf).add(Matrix.matrixMulVector(this.Whi.transpose(), dzi)).add(Matrix.matrixMulVector(this.Whg.transpose(), dzg)).add(Matrix.matrixMulVector(this.Who.transpose(), dzo)),
-            dcPrev: dL_dc.mulVectors(this.f)
+            dcPrev: dL_dc.mulVectors(f)
         }
 
     }
 
-    update(lr: number) {
+    update(lr: number, T: number) {
+
+        const scale = 1 / T;
 
         this.Wxf = this.Wxf.subInPlace(this.dWxf.multiplyScalar(lr));
         this.Whf = this.Whf.subInPlace(this.dWhf.multiplyScalar(lr));
