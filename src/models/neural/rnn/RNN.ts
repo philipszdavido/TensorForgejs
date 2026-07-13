@@ -131,11 +131,6 @@ export class RNN {
         };
     }
 
-    // loadWeights(weights: ReturnType<RNN["getWeights"]>) {
-    //     this.rnns.forEach((r, i) => r.loadWeights(weights.rnns[i]));
-    //     this.neuralNetwork.loadWeights(weights.head);
-    // }
-
     loadWeights(weights: ReturnType<RNN["getWeights"]>) {
 
         if (weights.rnns.length !== this.rnns.length) {
@@ -232,12 +227,19 @@ export class RNNLayer {
         // gradient of Whh is like normal NN but the input is from  previous time in the series.
 
         // dZ = dOutput ⊙ activation'(z)
+        // dL/dz = dL/dout * dout/dz
         const dZ = Vector.mulVectors(grad, this.activation.derivative(this.cache[time].h, this.cache[time].h));
 
         // dWeights = input * dZ
+        // dL/dWxh = dL/dz * dz/dWxh
+        // z = X.Wxh + hprev.Whh + b
+        // dz/dWxh = X = input
         this.dWxh = Matrix.add(this.dWxh, Matrix.outerProduct(dZ, this.cache[time].X));
 
         // dWeights = previous input * dZ
+        // dL/dWhh = dL/dz * dz/dWhh
+        // dz/dWhh = hprev
+        // dL/dWhh = dL/dz * hprev
         this.dWhh = Matrix.add(this.dWhh, Matrix.outerProduct(dZ, this.cache[time].hPrev));
 
         this.dB = Vector.addVectors(this.dB, dZ);
@@ -308,12 +310,6 @@ export class RNNLayer {
     getWeights() {
         return {Wxh: this.Wxh.toNestedArray(), Whh: this.Whh.toNestedArray(), b: this.b.toArray()};
     }
-
-    // loadWeights(weights: { Wxh: number[][]; Whh: number[][]; b: number[] }) {
-    //     this.Wxh = Matrix.from(weights.Wxh); //new Matrix(weights.Wxh, this.hiddenSize, this.inputSize);
-    //     this.Whh = Matrix.from(weights.Whh); //new Matrix(weights.Whh, this.hiddenSize, this.hiddenSize);
-    //     this.b = Vector.from(weights.b);
-    // }
 
     loadWeights(weights: { Wxh: number[][]; Whh: number[][]; b: number[] }) {
 
